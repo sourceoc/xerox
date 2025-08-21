@@ -20,7 +20,7 @@
       "name": "Alessandra Bonato",
       "discipline": "MatemÃÂ¡tica",
       "quota": 400,
-      "used": 160,
+      "used": 205,
       "discount": 0,
       "id": 1753785483240
     },
@@ -194,7 +194,7 @@
     }
   ],
   "month": "agosto",
-  "lastModified": "2025-08-21T19:27:18.693Z",
+  "lastModified": "2025-08-21T19:28:40.573Z",
   "totalCopies": 8750,
-  "usedCopies": 1905
+  "usedCopies": 1950
 }
