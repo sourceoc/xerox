@@ -2,7 +2,7 @@
   "professors": [
     {
       "name": "Ana Claudia Ruiz",
-      "discipline": "InglÃªs",
+      "discipline": "InglÃÂªs",
       "quota": 400,
       "used": 0,
       "discount": 0,
@@ -10,7 +10,7 @@
     },
     {
       "name": "Anselmo Provazi",
-      "discipline": "Ed. FÃ­sica",
+      "discipline": "Ed. FÃÂ­sica",
       "quota": 400,
       "used": 20,
       "discount": 0,
@@ -18,7 +18,7 @@
     },
     {
       "name": "Alessandra Bonato",
-      "discipline": "MatemÃ¡tica",
+      "discipline": "MatemÃÂ¡tica",
       "quota": 400,
       "used": 160,
       "discount": 0,
@@ -26,7 +26,7 @@
     },
     {
       "name": "Bruno Fonseca",
-      "discipline": "HistÃ³ria",
+      "discipline": "HistÃÂ³ria",
       "quota": 400,
       "used": 78,
       "discount": 0,
@@ -34,7 +34,7 @@
     },
     {
       "name": "Claudia Cilene",
-      "discipline": "MatemÃ¡tica",
+      "discipline": "MatemÃÂ¡tica",
       "quota": 400,
       "used": 253,
       "discount": 0,
@@ -42,15 +42,15 @@
     },
     {
       "name": "Cristina Ap.Canassa",
-      "discipline": "MatemÃ¡tica",
+      "discipline": "MatemÃÂ¡tica",
       "quota": 400,
       "used": 40,
       "discount": 0,
       "id": 1753785483243
     },
     {
-      "name": "IlÃ©ia Ribeiro",
-      "discipline": "CiÃªncia",
+      "name": "IlÃÂ©ia Ribeiro",
+      "discipline": "CiÃÂªncia",
       "quota": 400,
       "used": 104,
       "discount": 0,
@@ -58,7 +58,7 @@
     },
     {
       "name": "Lara Cristina",
-      "discipline": "CiÃªncia",
+      "discipline": "CiÃÂªncia",
       "quota": 400,
       "used": 102,
       "discount": 0,
@@ -66,7 +66,7 @@
     },
     {
       "name": "Rosana Barbosa",
-      "discipline": "LÃ­ngua Portuguesa",
+      "discipline": "LÃÂ­ngua Portuguesa",
       "quota": 400,
       "used": 24,
       "discount": 0,
@@ -82,7 +82,7 @@
     },
     {
       "name": "Murilo Alexandre",
-      "discipline": "LÃ­ngua Portuguesa",
+      "discipline": "LÃÂ­ngua Portuguesa",
       "quota": 400,
       "used": 83,
       "discount": 0,
@@ -90,15 +90,15 @@
     },
     {
       "name": "Sandra Cristina Lima",
-      "discipline": "LÃ­ngua Portuguesa",
+      "discipline": "LÃÂ­ngua Portuguesa",
       "quota": 400,
       "used": 87,
       "discount": 0,
       "id": 1753785483249
     },
     {
-      "name": "MÃ¡rcia Pinheiro",
-      "discipline": "HistÃ³ria",
+      "name": "MÃÂ¡rcia Pinheiro",
+      "discipline": "HistÃÂ³ria",
       "quota": 400,
       "used": 387,
       "discount": 0,
@@ -106,7 +106,7 @@
     },
     {
       "name": "Natalia Carvalho",
-      "discipline": "Adjunta / Prof de OrientaÃ§Ã£o",
+      "discipline": "Adjunta / Prof de OrientaÃÂ§ÃÂ£o",
       "quota": 400,
       "used": 42,
       "discount": 0,
@@ -114,7 +114,7 @@
     },
     {
       "name": "Natalia Mariano",
-      "discipline": "Ed. FÃ­sica",
+      "discipline": "Ed. FÃÂ­sica",
       "quota": 150,
       "used": 0,
       "discount": 0,
@@ -122,7 +122,7 @@
     },
     {
       "name": "Neusa Cristina",
-      "discipline": "InglÃªs",
+      "discipline": "InglÃÂªs",
       "quota": 400,
       "used": 228,
       "discount": 0,
@@ -137,7 +137,7 @@
       "id": 1753785483254
     },
     {
-      "name": "JoÃ£o Morita",
+      "name": "JoÃÂ£o Morita",
       "discipline": "Geografia",
       "quota": 400,
       "used": 0,
@@ -146,7 +146,7 @@
     },
     {
       "name": "Quinha",
-      "discipline": "MatemÃ¡tica",
+      "discipline": "MatemÃÂ¡tica",
       "quota": 400,
       "used": 80,
       "discount": 0,
@@ -154,7 +154,7 @@
     },
     {
       "name": "Eva Moreira",
-      "discipline": "LÃ­ngua Portuguesa",
+      "discipline": "LÃÂ­ngua Portuguesa",
       "quota": 400,
       "used": 17,
       "discount": 0,
@@ -194,7 +194,7 @@
     }
   ],
   "month": "agosto",
-  "lastModified": "2025-08-21T18:58:11.211Z",
+  "lastModified": "2025-08-21T19:00:04.724Z",
   "totalCopies": 8750,
-  "usedCopies": 1906
+  "usedCopies": 1896
 }
