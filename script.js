@@ -211,12 +211,32 @@ function addRow(p={ name:'', discipline:'', quota:0, used:0, discount:0, id:Date
     else tr.className = 'ok';
   }
 
-  usedWrap.querySelector('.inc').onclick = ()=>{ usedI.value = toNum(usedI.value)+1; recalc(); aggregateAndUpdate(); scheduleSave(); };
-  usedWrap.querySelector('.dec').onclick = ()=>{ usedI.value = Math.max(0,toNum(usedI.value)-1); recalc(); aggregateAndUpdate(); scheduleSave(); };
-  tr.querySelector('.copy10').onclick = ()=>{ usedI.value = toNum(usedI.value)+10; recalc(); aggregateAndUpdate(); scheduleSave(); };
-  tr.querySelector('.copy50').onclick = ()=>{ usedI.value = toNum(usedI.value)+50; recalc(); aggregateAndUpdate(); scheduleSave(); };
-  tr.querySelector('.copy100').onclick = ()=>{ usedI.value = toNum(usedI.value)+100; recalc(); aggregateAndUpdate(); scheduleSave(); };
-  tr.querySelector('.remove').onclick = ()=>{ tr.remove(); removeFromState(); aggregateAndUpdate(); scheduleSave(); };
+  usedWrap.querySelector('.inc').onclick = ()=>{
+    usedI.value = toNum(usedI.value)+1;
+    p.used = toNum(usedI.value); // <-- mantém state.data atualizado
+    recalc(); aggregateAndUpdate(); scheduleSave();
+  };
+  usedWrap.querySelector('.dec').onclick = ()=>{
+    usedI.value = Math.max(0,toNum(usedI.value)-1);
+    p.used = toNum(usedI.value);
+    recalc(); aggregateAndUpdate(); scheduleSave();
+  };
+  tr.querySelector('.copy10').onclick = ()=>{
+    usedI.value = toNum(usedI.value)+10;
+    p.used = toNum(usedI.value);
+    recalc(); aggregateAndUpdate(); scheduleSave();
+  };
+  tr.querySelector('.copy50').onclick = ()=>{
+    usedI.value = toNum(usedI.value)+50;
+    p.used = toNum(usedI.value);
+    recalc(); aggregateAndUpdate(); scheduleSave();
+  };
+  tr.querySelector('.copy100').onclick = ()=>{
+    usedI.value = toNum(usedI.value)+100;
+    p.used = toNum(usedI.value);
+    recalc(); aggregateAndUpdate(); scheduleSave();
+  };
+  tr.querySelector('.remove').onclick = ()=>{ tr.remove(); removeFromState(); aggregateAndUpdate(); scheduleSave(true); };
 
   nameI.oninput = ()=>{ p.name = nameI.value; scheduleSave(); };
   discI.oninput = ()=>{ p.discipline = discI.value; scheduleSave(); };
