@@ -1,0 +1,200 @@
+{
+  "professors": [
+    {
+      "name": "Ana Claudia Ruiz",
+      "discipline": "Inglês",
+      "quota": 400,
+      "used": 0,
+      "discount": 0,
+      "id": 1753785483238
+    },
+    {
+      "name": "Anselmo Provazi",
+      "discipline": "Ed. Física",
+      "quota": 400,
+      "used": 20,
+      "discount": 0,
+      "id": 1753785483239
+    },
+    {
+      "name": "Alessandra Bonato",
+      "discipline": "Matemática",
+      "quota": 400,
+      "used": 160,
+      "discount": 0,
+      "id": 1753785483240
+    },
+    {
+      "name": "Bruno Fonseca",
+      "discipline": "História",
+      "quota": 400,
+      "used": 78,
+      "discount": 0,
+      "id": 1753785483241
+    },
+    {
+      "name": "Claudia Cilene",
+      "discipline": "Matemática",
+      "quota": 400,
+      "used": 253,
+      "discount": 0,
+      "id": 1753785483242
+    },
+    {
+      "name": "Cristina Ap.Canassa",
+      "discipline": "Matemática",
+      "quota": 400,
+      "used": 40,
+      "discount": 0,
+      "id": 1753785483243
+    },
+    {
+      "name": "Iléia Ribeiro",
+      "discipline": "Ciência",
+      "quota": 400,
+      "used": 104,
+      "discount": 0,
+      "id": 1753785483244
+    },
+    {
+      "name": "Lara Cristina",
+      "discipline": "Ciência",
+      "quota": 400,
+      "used": 102,
+      "discount": 0,
+      "id": 1753785483245
+    },
+    {
+      "name": "Rosana Barbosa",
+      "discipline": "Língua Portuguesa",
+      "quota": 400,
+      "used": 24,
+      "discount": 0,
+      "id": 1753785483246
+    },
+    {
+      "name": "Rosana Barbosa",
+      "discipline": "Assistente Peb II",
+      "quota": 200,
+      "used": 0,
+      "discount": 0,
+      "id": 1753785483247
+    },
+    {
+      "name": "Murilo Alexandre",
+      "discipline": "Língua Portuguesa",
+      "quota": 400,
+      "used": 83,
+      "discount": 0,
+      "id": 1753785483248
+    },
+    {
+      "name": "Sandra Cristina Lima",
+      "discipline": "Língua Portuguesa",
+      "quota": 400,
+      "used": 87,
+      "discount": 0,
+      "id": 1753785483249
+    },
+    {
+      "name": "Márcia Pinheiro",
+      "discipline": "História",
+      "quota": 400,
+      "used": 387,
+      "discount": 0,
+      "id": 1753785483250
+    },
+    {
+      "name": "Natalia Carvalho",
+      "discipline": "Adjunta / Prof de Orientação",
+      "quota": 400,
+      "used": 42,
+      "discount": 0,
+      "id": 1753785483251
+    },
+    {
+      "name": "Natalia Mariano",
+      "discipline": "Ed. Física",
+      "quota": 150,
+      "used": 0,
+      "discount": 0,
+      "id": 1753785483252
+    },
+    {
+      "name": "Neusa Cristina",
+      "discipline": "Inglês",
+      "quota": 400,
+      "used": 228,
+      "discount": 0,
+      "id": 1753785483253
+    },
+    {
+      "name": "Maria Ferreira",
+      "discipline": "Geografia",
+      "quota": 400,
+      "used": 12,
+      "discount": 0,
+      "id": 1753785483254
+    },
+    {
+      "name": "João Morita",
+      "discipline": "Geografia",
+      "quota": 400,
+      "used": 0,
+      "discount": 0,
+      "id": 1753785483255
+    },
+    {
+      "name": "Quinha",
+      "discipline": "Matemática",
+      "quota": 400,
+      "used": 80,
+      "discount": 0,
+      "id": 1753785483256
+    },
+    {
+      "name": "Eva Moreira",
+      "discipline": "Língua Portuguesa",
+      "quota": 400,
+      "used": 17,
+      "discount": 0,
+      "id": 1753785483257
+    },
+    {
+      "name": "Renata Paulo",
+      "discipline": "Arte",
+      "quota": 400,
+      "used": 16,
+      "discount": 0,
+      "id": 1753785483258
+    },
+    {
+      "name": "Edna Marli",
+      "discipline": "Assistente Peb II",
+      "quota": 200,
+      "used": 58,
+      "discount": 0,
+      "id": 1753785483259
+    },
+    {
+      "name": "Maristela Salata",
+      "discipline": "Espanhol",
+      "quota": 400,
+      "used": 102,
+      "discount": 0,
+      "id": 1753785483260
+    },
+    {
+      "name": "Mirian Alves",
+      "discipline": "Arte",
+      "quota": 200,
+      "used": 2,
+      "discount": 0,
+      "id": 1753785483261
+    }
+  ],
+  "month": "agosto",
+  "lastModified": "2025-08-20T22:37:23.931Z",
+  "totalCopies": 8750,
+  "usedCopies": 1895
+}
