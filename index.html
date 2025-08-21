@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Xerox — Controle de Cotas</title>
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=8" />
 </head>
 <body>
   <header class="topbar">
@@ -15,6 +15,7 @@
       <button id="tokenBtn" class="btn btn-ghost">Token do GitHub</button>
       <span id="tokenStatus" class="badge">Token: —</span>
       <span id="shaStatus" class="badge">SHA: —</span>
+      <span id="dirtyStatus" class="badge">Estado: salvo</span>
       <span class="badge">Auto‑save ON</span>
     </div>
   </header>
@@ -27,6 +28,10 @@
       <button id="diagBtn" class="btn btn-ghost" title="Diagnosticar token/permissões">🧪 Diagnosticar</button>
       <button id="repairBtn" class="btn btn-ghost" style="display:none" title="Reparar/Inicializar JSON">🛠️ Reparar JSON</button>
       <div class="spacer"></div>
+      <button id="undoBtn" class="btn" title="Desfazer última alteração (Ctrl+Z)">↶ Desfazer</button>
+      <button id="importBtn" class="btn" title="Importar CSV/JSON">📤 Importar</button>
+      <input id="importFile" type="file" accept=".json,.csv" style="display:none" />
+      <button id="exportCsv" class="btn" title="Exportar CSV">⬇️ CSV</button>
       <input id="search" class="input" placeholder="Pesquisar por nome ou disciplina..." />
       <select id="disciplineFilter" class="input"></select>
       <button id="clearFilters" class="btn btn-ghost">Limpar</button>
@@ -130,6 +135,6 @@
     </tr>
   </template>
 
-  <script src="script.js?v=6"></script>
+  <script src="script.js?v=8"></script>
 </body>
 </html>
