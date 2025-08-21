@@ -1,119 +1,13 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
   <title>Xerox — Controle de Cotas</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar">
-    <h1>📄 Xerox — Controle de Cotas</h1>
-    <div class="repo-fixed">
-      <span>Repo:</span>
-      <code>sourceoc/xerox@main — xerox_data_agosto.json</code>
-      <button id="tokenBtn" class="btn btn-ghost">Token do GitHub</button>
-      <span id="autosaveBadge" class="badge">Auto‑save ON</span>
-    </div>
-  </header>
-
-  <main class="container">
-    <section class="actions">
-      <button id="loadBtn" class="btn">🔄 Carregar do GitHub</button>
-      <button id="saveBtn" class="btn btn-primary" disabled>💾 Salvar no GitHub</button>
-      <div class="spacer"></div>
-      <input id="search" class="input" placeholder="Pesquisar por nome ou disciplina..." />
-      <select id="disciplineFilter" class="input"></select>
-      <button id="clearFilters" class="btn btn-ghost">Limpar</button>
-    </section>
-
-    <section id="summary" class="summary">
-      <div class="card">
-        <div class="metric">
-          <div class="metric-label">Mês</div>
-          <div class="metric-value" id="month">—</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="metric">
-          <div class="metric-label">Cópias usadas</div>
-          <div class="metric-value" id="usedCopies">—</div>
-        </div>
-        <div class="progress"><div id="usedBar" class="progress-bar"></div></div>
-      </div>
-      <div class="card">
-        <div class="metric">
-          <div class="metric-label">Cópias totais</div>
-          <div class="metric-value" id="totalCopies">—</div>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="table-wrap">
-        <table id="profTable">
-          <thead>
-            <tr>
-              <th>Professor(a)</th>
-              <th>Disciplina</th>
-              <th>Cota</th>
-              <th>Usado</th>
-              <th>Desconto</th>
-              <th>Efetivo</th>
-              <th>Restante</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="profTbody"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="footer-actions">
-      <button id="addRow" class="btn">➕ Adicionar Professor(a)</button>
-      <button id="recalcTotals" class="btn btn-ghost">Recalcular Totais</button>
-      <button id="exportJson" class="btn">⬇️ Baixar JSON</button>
-    </section>
-  </main>
-
-  <!-- Modal do Token -->
-  <dialog id="tokenModal">
-    <form method="dialog" class="modal">
-      <h2>Token pessoal do GitHub</h2>
-      <p>Informe um token com escopo mínimo (repo:contents) para atualizar o arquivo JSON no repositório <code>sourceoc/xerox</code>.</p>
-      <input id="tokenInput" class="input" placeholder="ghp_..." />
-      <label class="remember">
-        <input type="checkbox" id="rememberToken" /> Salvar no navegador (localStorage)
-      </label>
-      <div class="modal-actions">
-        <button id="saveToken" class="btn btn-primary">Salvar</button>
-        <button class="btn">Fechar</button>
-      </div>
-    </form>
-  </dialog>
-
-  <template id="rowTemplate">
-    <tr>
-      <td><input class="cell name" /></td>
-      <td><input class="cell discipline" /></td>
-      <td><input class="cell quota" type="number" min="0" /></td>
-      <td class="used-wrap">
-        <button class="mini dec">−</button>
-        <input class="cell used" type="number" min="0" />
-        <button class="mini inc">+</button>
-      </td>
-      <td><input class="cell discount" type="number" min="0" /></td>
-      <td class="effective">0</td>
-      <td class="remaining">0</td>
-      <td class="row-actions">
-        <button class="mini copy10">+10</button>
-        <button class="mini copy50">+50</button>
-        <button class="mini copy100">+100</button>
-        <button class="mini danger remove">Remover</button>
-      </td>
-    </tr>
-  </template>
-
+  <h1>Xerox — Controle de Cotas</h1>
+  <button onclick="saveToGitHub(true)">Salvar no GitHub</button>
   <script src="script.js"></script>
 </body>
 </html>
