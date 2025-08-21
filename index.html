@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Xerox — Controle de Cotas</title>
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
   <header class="topbar">
@@ -13,6 +13,8 @@
       <span>Repo:</span>
       <code>sourceoc/xerox@main — xerox_data_agosto.json</code>
       <button id="tokenBtn" class="btn btn-ghost">Token do GitHub</button>
+      <span id="tokenStatus" class="badge">Token: —</span>
+      <span id="shaStatus" class="badge">SHA: —</span>
       <span class="badge">Auto‑save ON</span>
     </div>
   </header>
@@ -21,6 +23,9 @@
     <section class="actions">
       <button id="loadBtn" class="btn">🔄 Carregar do GitHub</button>
       <button id="saveBtn" class="btn btn-primary" disabled>💾 Salvar no GitHub</button>
+      <button id="refreshShaBtn" class="btn btn-ghost" title="Atualizar SHA (evita 409)">⟳ Atualizar SHA</button>
+      <button id="diagBtn" class="btn btn-ghost" title="Diagnosticar token/permissões">🧪 Diagnosticar</button>
+      <button id="repairBtn" class="btn btn-ghost" style="display:none" title="Reparar/Inicializar JSON">🛠️ Reparar JSON</button>
       <div class="spacer"></div>
       <input id="search" class="input" placeholder="Pesquisar por nome ou disciplina..." />
       <select id="disciplineFilter" class="input"></select>
@@ -80,13 +85,24 @@
   <dialog id="tokenModal">
     <form method="dialog" class="modal">
       <h2>Token pessoal do GitHub</h2>
-      <p>Informe um token com escopo mínimo (Contents: Read & Write) no repo <code>sourceoc/xerox</code>.</p>
+      <p>Use um token <b>fine-grained</b> com <b>Repository access: sourceoc/xerox</b> e <b>Repository permissions → Contents: Read &amp; Write</b>.</p>
       <input id="tokenInput" class="input" placeholder="ghp_..." />
       <label class="remember">
         <input type="checkbox" id="rememberToken" /> Salvar no navegador (localStorage)
       </label>
       <div class="modal-actions">
         <button id="saveToken" class="btn btn-primary">Salvar</button>
+        <button class="btn">Fechar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal de Diagnóstico -->
+  <dialog id="diagModal">
+    <form method="dialog" class="modal">
+      <h2>Diagnóstico do Token</h2>
+      <pre id="diagOutput" style="white-space:pre-wrap;background:#0c1430;border-radius:12px;padding:10px;max-height:300px;overflow:auto"></pre>
+      <div class="modal-actions">
         <button class="btn">Fechar</button>
       </div>
     </form>
@@ -114,6 +130,6 @@
     </tr>
   </template>
 
-  <script src="script.js?v=4"></script>
+  <script src="script.js?v=6"></script>
 </body>
 </html>
