@@ -2,7 +2,7 @@
   "professors": [
     {
       "name": "Ana Claudia Ruiz",
-      "discipline": "InglÃÂªs",
+      "discipline": "Inglãâªs",
       "quota": 400,
       "used": 0,
       "discount": 0,
@@ -10,7 +10,7 @@
     },
     {
       "name": "Anselmo Provazi",
-      "discipline": "Ed. FÃÂ­sica",
+      "discipline": "Ed. Fãâ­sica",
       "quota": 400,
       "used": 20,
       "discount": 0,
@@ -18,7 +18,7 @@
     },
     {
       "name": "Alessandra Bonato",
-      "discipline": "MatemÃÂ¡tica",
+      "discipline": "Matemãâ¡tica",
       "quota": 400,
       "used": 205,
       "discount": 0,
@@ -26,7 +26,7 @@
     },
     {
       "name": "Bruno Fonseca",
-      "discipline": "HistÃÂ³ria",
+      "discipline": "Histãâ³ria",
       "quota": 400,
       "used": 78,
       "discount": 0,
@@ -34,23 +34,23 @@
     },
     {
       "name": "Claudia Cilene",
-      "discipline": "MatemÃÂ¡tica",
+      "discipline": "Matemãâ¡tica",
       "quota": 400,
       "used": 263,
       "discount": 0,
       "id": 1753785483242
     },
     {
-      "name": "Cristina Ap.Canassa",
-      "discipline": "MatemÃÂ¡tica",
+      "name": "Cristina Ap.canassa",
+      "discipline": "Matemãâ¡tica",
       "quota": 400,
       "used": 40,
       "discount": 0,
       "id": 1753785483243
     },
     {
-      "name": "IlÃÂ©ia Ribeiro",
-      "discipline": "CiÃÂªncia",
+      "name": "Ilãâ©ia Ribeiro",
+      "discipline": "Ciãâªncia",
       "quota": 400,
       "used": 104,
       "discount": 0,
@@ -58,7 +58,7 @@
     },
     {
       "name": "Lara Cristina",
-      "discipline": "CiÃÂªncia",
+      "discipline": "Ciãâªncia",
       "quota": 400,
       "used": 102,
       "discount": 0,
@@ -66,7 +66,7 @@
     },
     {
       "name": "Rosana Barbosa",
-      "discipline": "LÃÂ­ngua Portuguesa",
+      "discipline": "Lãâ­ngua Portuguesa",
       "quota": 400,
       "used": 24,
       "discount": 0,
@@ -82,7 +82,7 @@
     },
     {
       "name": "Murilo Alexandre",
-      "discipline": "LÃÂ­ngua Portuguesa",
+      "discipline": "Lãâ­ngua Portuguesa",
       "quota": 400,
       "used": 83,
       "discount": 0,
@@ -90,15 +90,15 @@
     },
     {
       "name": "Sandra Cristina Lima",
-      "discipline": "LÃÂ­ngua Portuguesa",
+      "discipline": "Lãâ­ngua Portuguesa",
       "quota": 400,
       "used": 87,
       "discount": 0,
       "id": 1753785483249
     },
     {
-      "name": "MÃÂ¡rcia Pinheiro",
-      "discipline": "HistÃÂ³ria",
+      "name": "Mãâ¡rcia Pinheiro",
+      "discipline": "Histãâ³ria",
       "quota": 400,
       "used": 387,
       "discount": 0,
@@ -106,7 +106,7 @@
     },
     {
       "name": "Natalia Carvalho",
-      "discipline": "Adjunta / Prof de OrientaÃÂ§ÃÂ£o",
+      "discipline": "Adjunta / Prof de Orientaãâ§ãâ£o",
       "quota": 400,
       "used": 42,
       "discount": 0,
@@ -114,7 +114,7 @@
     },
     {
       "name": "Natalia Mariano",
-      "discipline": "Ed. FÃÂ­sica",
+      "discipline": "Ed. Fãâ­sica",
       "quota": 150,
       "used": 0,
       "discount": 0,
@@ -122,7 +122,7 @@
     },
     {
       "name": "Neusa Cristina",
-      "discipline": "InglÃÂªs",
+      "discipline": "Inglãâªs",
       "quota": 400,
       "used": 228,
       "discount": 0,
@@ -137,7 +137,7 @@
       "id": 1753785483254
     },
     {
-      "name": "JoÃÂ£o Morita",
+      "name": "Joãâ£o Morita",
       "discipline": "Geografia",
       "quota": 400,
       "used": 0,
@@ -146,7 +146,7 @@
     },
     {
       "name": "Quinha",
-      "discipline": "MatemÃÂ¡tica",
+      "discipline": "Matemãâ¡tica",
       "quota": 400,
       "used": 80,
       "discount": 0,
@@ -154,7 +154,7 @@
     },
     {
       "name": "Eva Moreira",
-      "discipline": "LÃÂ­ngua Portuguesa",
+      "discipline": "Lãâ­ngua Portuguesa",
       "quota": 400,
       "used": 17,
       "discount": 0,
@@ -193,7 +193,7 @@
       "id": 1753785483261
     }
   ],
-  "month": "agosto",
+  "month": "Agosto",
   "lastModified": "2025-08-21T19:46:33.721Z",
   "totalCopies": 8750,
   "usedCopies": 1950
