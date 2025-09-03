@@ -148,7 +148,7 @@
       "name": "Quinha",
       "discipline": "Matemãâ¡tica",
       "quota": 400,
-      "used": 80,
+      "used": 114,
       "discount": 0,
       "id": 1753785483256
     },
@@ -194,7 +194,7 @@
     }
   ],
   "month": "Agosto",
-  "lastModified": "2025-09-03T13:01:29.718Z",
+  "lastModified": "2025-09-03T13:02:03.624Z",
   "totalCopies": 8750,
-  "usedCopies": 2592
+  "usedCopies": 2626
 }
