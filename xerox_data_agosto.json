@@ -36,7 +36,7 @@
       "name": "Claudia Cilene",
       "discipline": "Matemãâ¡tica",
       "quota": 400,
-      "used": 0,
+      "used": 333,
       "discount": 0,
       "id": 1753785483242
     },
@@ -194,7 +194,7 @@
     }
   ],
   "month": "Agosto",
-  "lastModified": "2025-09-03T12:57:51.763Z",
+  "lastModified": "2025-09-03T12:57:53.606Z",
   "totalCopies": 8750,
-  "usedCopies": 1873
+  "usedCopies": 2206
 }
