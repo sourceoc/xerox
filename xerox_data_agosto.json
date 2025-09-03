@@ -28,7 +28,7 @@
       "name": "Bruno Fonseca",
       "discipline": "Histãâ³ria",
       "quota": 400,
-      "used": 78,
+      "used": 233,
       "discount": 0,
       "id": 1753785483241
     },
@@ -194,7 +194,7 @@
     }
   ],
   "month": "Agosto",
-  "lastModified": "2025-09-03T12:56:36.392Z",
+  "lastModified": "2025-09-03T12:57:24.181Z",
   "totalCopies": 8750,
-  "usedCopies": 1981
+  "usedCopies": 2136
 }
