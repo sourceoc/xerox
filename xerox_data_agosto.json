@@ -4,7 +4,7 @@
       "name": "Ana Claudia Ruiz",
       "discipline": "Inglãâªs",
       "quota": 400,
-      "used": 0,
+      "used": 16,
       "discount": 0,
       "id": 1753785483238
     },
@@ -194,7 +194,7 @@
     }
   ],
   "month": "Agosto",
-  "lastModified": "2025-08-21T19:46:33.721Z",
+  "lastModified": "2025-09-03T12:56:24.789Z",
   "totalCopies": 8750,
-  "usedCopies": 1950
+  "usedCopies": 1966
 }
