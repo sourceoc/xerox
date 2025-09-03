@@ -12,7 +12,7 @@
       "name": "Anselmo Provazi",
       "discipline": "Ed. Fãâ­sica",
       "quota": 400,
-      "used": 20,
+      "used": 35,
       "discount": 0,
       "id": 1753785483239
     },
@@ -194,7 +194,7 @@
     }
   ],
   "month": "Agosto",
-  "lastModified": "2025-09-03T12:56:24.789Z",
+  "lastModified": "2025-09-03T12:56:36.392Z",
   "totalCopies": 8750,
-  "usedCopies": 1966
+  "usedCopies": 1981
 }
