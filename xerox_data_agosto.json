@@ -68,7 +68,7 @@
       "name": "Rosana Barbosa",
       "discipline": "Lãâ­ngua Portuguesa",
       "quota": 400,
-      "used": 24,
+      "used": 30,
       "discount": 0,
       "id": 1753785483246
     },
@@ -194,7 +194,7 @@
     }
   ],
   "month": "Agosto",
-  "lastModified": "2025-09-04T10:52:43.170Z",
+  "lastModified": "2025-09-04T12:01:59.441Z",
   "totalCopies": 8750,
-  "usedCopies": 2751
+  "usedCopies": 2757
 }
