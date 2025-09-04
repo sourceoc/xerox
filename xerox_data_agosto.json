@@ -188,13 +188,13 @@
       "name": "Mirian Alves",
       "discipline": "Arte",
       "quota": 200,
-      "used": 2,
+      "used": 12,
       "discount": 0,
       "id": 1753785483261
     }
   ],
   "month": "Agosto",
-  "lastModified": "2025-09-04T12:03:39.514Z",
+  "lastModified": "2025-09-04T12:03:59.701Z",
   "totalCopies": 8750,
-  "usedCopies": 2831
+  "usedCopies": 2841
 }
