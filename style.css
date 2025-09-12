@@ -718,6 +718,17 @@ tbody tr:hover {
     padding-top: 1.5rem;
     border-top: 1px solid #eee;
     font-size: 0.8rem;
+}
+
+.security-notice {
+    background: #fff3cd;
+    color: #856404;
+    padding: 10px;
+    border-radius: 5px;
+    border-left: 4px solid #ffc107;
+    margin-top: 10px !important;
+    font-weight: 500;
+    font-size: 0.85rem !important;
     color: #666;
 }
 

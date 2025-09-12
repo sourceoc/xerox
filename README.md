@@ -52,7 +52,7 @@ Sistema profissional e completo para gerenciar cotas de impressão de professore
 1. Clone ou faça download dos arquivos
 2. Coloque todos os arquivos em seu servidor web
 3. Acesse `index.html` no navegador
-4. Use as credenciais padrão: **usuário: `admin`** | **senha: `admin123`**
+4. Use as credenciais: **usuário: `admin`** | **senha: será gerada automaticamente**
 
 ### Primeira Configuração
 1. **Altere a senha padrão** através do menu de configurações
@@ -125,9 +125,10 @@ xerox/
 
 ### **Autenticação**
 ```javascript
-// Credenciais padrão (altere imediatamente!)
+// Credenciais iniciais
 usuário: admin
-senha: admin123
+senha: [gerada automaticamente no primeiro acesso]
+// IMPORTANTE: Altere a senha imediatamente após o primeiro login!
 ```
 
 ### **Personalização de Temas**
@@ -196,7 +197,7 @@ Verifique:
 ```
 Soluções:
 - Limpe cache do navegador
-- Use credenciais: admin/admin123
+- Use credenciais: admin/[senha gerada automaticamente]
 - Verifique localStorage do navegador
 ```
 

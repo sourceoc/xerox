@@ -12,16 +12,44 @@ class AuthSystem {
     initializeDefaultAdmin() {
         const existingAdmin = localStorage.getItem(this.adminKey);
         if (!existingAdmin) {
-            // Senha padrão: admin123
-            const defaultPasswordHash = this.hashPassword('admin123');
+            // Gerar senha inicial aleatória (usuário deve alterar no primeiro login)
+            const tempPassword = this.generateSecurePassword();
+            const defaultPasswordHash = this.hashPassword(tempPassword);
             const adminData = {
                 username: 'admin',
                 passwordHash: defaultPasswordHash,
                 createdAt: Date.now(),
-                permissions: ['read', 'write', 'delete', 'admin']
+                permissions: ['read', 'write', 'delete', 'admin'],
+                requirePasswordChange: true,
+                tempPassword: tempPassword // Mostrar apenas uma vez
             };
             localStorage.setItem(this.adminKey, JSON.stringify(adminData));
+            
+            // Mostrar senha temporária para o usuário
+            this.showTempPasswordMessage(tempPassword);
         }
+    }
+
+    generateSecurePassword() {
+        const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+        let password = '';
+        for (let i = 0; i < 12; i++) {
+            password += charset.charAt(Math.floor(Math.random() * charset.length));
+        }
+        return password;
+    }
+
+    showTempPasswordMessage(tempPassword) {
+        setTimeout(() => {
+            if (typeof ToastSystem !== 'undefined') {
+                ToastSystem.info(
+                    `Senha temporária gerada: ${tempPassword}. ALTERE IMEDIATAMENTE após o login!`, 
+                    15000
+                );
+            } else {
+                alert(`ATENÇÃO: Senha temporária gerada: ${tempPassword}\nALTERE IMEDIATAMENTE após o login por segurança!`);
+            }
+        }, 1000);
     }
 
     hashPassword(password) {
@@ -102,7 +130,8 @@ class AuthSystem {
                     username: username,
                     loginTime: Date.now(),
                     expiresAt: Date.now() + this.sessionTimeout,
-                    permissions: adminData.permissions
+                    permissions: adminData.permissions,
+                    requirePasswordChange: adminData.requirePasswordChange || false
                 };
 
                 const encryptedSession = await CryptoUtils.encrypt(
