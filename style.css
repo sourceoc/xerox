@@ -729,7 +729,75 @@ tbody tr:hover {
     margin-top: 10px !important;
     font-weight: 500;
     font-size: 0.85rem !important;
-    color: #666;
+}
+
+.info-notice {
+    background: #d1ecf1;
+    color: #0c5460;
+    padding: 8px;
+    border-radius: 5px;
+    border-left: 4px solid #17a2b8;
+    margin-top: 8px !important;
+    font-weight: 500;
+    font-size: 0.85rem !important;
+}
+
+.login-options {
+    text-align: left;
+    margin-top: 20px;
+}
+
+.login-options h4 {
+    color: #495057;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.login-options .option {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.login-options .option:last-child {
+    margin-bottom: 0;
+}
+
+.login-options .option strong {
+    color: #495057;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.login-options .option p {
+    margin: 5px 0;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.token-config-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+.token-config-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
 }
 
 /* User Info */

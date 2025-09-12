@@ -110,6 +110,14 @@ class SistemaXerox {
                 this.configurarValidacoes();
                 this.renderizar();
                 this.configurarTemas();
+                
+                // Verificar se há token configurado e mostrar status
+                const hasToken = await window.secureStorage.isTokenValid();
+                if (hasToken) {
+                    ToastSystem.success('🔑 Sistema carregado em modo Token GitHub!');
+                } else {
+                    ToastSystem.success('🔐 Sistema carregado em modo local!');
+                }
             } catch (configError) {
                 window.errorHandler?.captureException(configError, {
                     component: 'config',
@@ -118,7 +126,6 @@ class SistemaXerox {
                 ToastSystem.warning('Algumas funcionalidades podem estar limitadas devido a erros de configuração');
             }
             
-            ToastSystem.success('Sistema carregado com sucesso!');
         } catch (error) {
             console.error('Erro na inicialização:', error);
             window.errorHandler?.captureException(error, {
@@ -133,23 +140,52 @@ class SistemaXerox {
     }
 
     async verificarAutenticacao() {
+        // Verificar se há token GitHub configurado (modo automático)
+        const hasGitHubToken = await window.secureStorage.isTokenValid();
+        
+        if (hasGitHubToken) {
+            // Modo automático com token GitHub
+            this.updateUserInterface(true);
+            return;
+        }
+        
+        // Verificar autenticação tradicional
         const isAuthenticated = await RouteProtection.checkAuth();
         if (!isAuthenticated) {
             this.showLoginModal();
             return;
         }
         
-        this.updateUserInterface();
+        this.updateUserInterface(false);
     }
 
-    updateUserInterface() {
+    updateUserInterface(isTokenMode = false) {
         const userInfo = document.getElementById('userInfo');
         const userName = document.getElementById('userName');
         const btnLogout = document.getElementById('btnLogout');
         
         if (userInfo) userInfo.classList.add('authenticated');
-        if (userName) userName.textContent = '👤 admin';
-        if (btnLogout) btnLogout.style.display = 'inline-block';
+        
+        if (userName) {
+            if (isTokenMode) {
+                userName.textContent = '🔑 GitHub Token Mode';
+                userName.title = 'Autenticado via token GitHub';
+            } else {
+                userName.textContent = '👤 admin';
+                userName.title = 'Autenticado via login local';
+            }
+        }
+        
+        if (btnLogout) {
+            btnLogout.style.display = 'inline-block';
+            if (isTokenMode) {
+                btnLogout.textContent = '🚪 Limpar Token';
+                btnLogout.title = 'Limpar token GitHub';
+            }
+        }
+        
+        // Esconder modal de login se estiver visível
+        this.hideLoginModal();
     }
 
     showLoginModal() {
@@ -157,6 +193,36 @@ class SistemaXerox {
         if (modal) {
             modal.style.display = 'block';
             modal.setAttribute('aria-hidden', 'false');
+            
+            // Adicionar botão para configurar token diretamente
+            this.addTokenConfigButton();
+        }
+    }
+    
+    hideLoginModal() {
+        const modal = document.getElementById('modalLogin');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+        }
+    }
+    
+    addTokenConfigButton() {
+        const loginFooter = document.querySelector('#modalLogin .login-footer');
+        if (loginFooter && !loginFooter.querySelector('.token-config-btn')) {
+            const tokenButton = document.createElement('button');
+            tokenButton.className = 'btn btn-secondary token-config-btn';
+            tokenButton.innerHTML = '🔑 Usar Token GitHub';
+            tokenButton.title = 'Configure um token GitHub para acesso direto';
+            tokenButton.style.marginTop = '15px';
+            tokenButton.style.width = '100%';
+            
+            tokenButton.addEventListener('click', () => {
+                this.hideLoginModal();
+                this.abrirModalConfiguracoes();
+            });
+            
+            loginFooter.appendChild(tokenButton);
         }
     }
 
@@ -443,8 +509,14 @@ class SistemaXerox {
     }
 
     async logout() {
+        // Verificar se está em modo token
+        const isTokenMode = await window.secureStorage.isTokenValid();
+        const message = isTokenMode ? 
+            'Tem certeza que deseja limpar o token GitHub?' : 
+            'Tem certeza que deseja sair do sistema?';
+            
         ToastSystem.confirm(
-            'Tem certeza que deseja sair do sistema?',
+            message,
             async () => {
                 // Limpar todos os event listeners para prevenir memory leaks
                 this.removeAllEventListeners();
@@ -461,8 +533,20 @@ class SistemaXerox {
                 // Limpar bound methods
                 this.boundMethods = {};
                 
-                await this.auth.logout();
-                ToastSystem.success('Logout realizado com sucesso');
+                if (isTokenMode) {
+                    // Limpar token GitHub
+                    window.secureStorage.clearSensitiveData();
+                    ToastSystem.success('Token GitHub removido com sucesso');
+                } else {
+                    // Logout tradicional
+                    await this.auth.logout();
+                    ToastSystem.success('Logout realizado com sucesso');
+                }
+                
+                // Recarregar página após limpar dados
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             }
         );
     }
