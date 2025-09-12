@@ -105,6 +105,17 @@ header h1 {
     background-color: #138496;
 }
 
+.btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+}
+
 /* Dashboard */
 .dashboard {
     display: grid;
@@ -395,4 +406,29 @@ tbody tr:hover {
     padding: 1rem;
     border-radius: 5px;
     margin-bottom: 1rem;
+}
+
+/* Readonly input */
+.readonly-input {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+}
+
+/* Info box */
+.info-box {
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.info-box p {
+    margin: 0.5rem 0;
+}
+
+.info-box span {
+    font-weight: bold;
+    color: #007bff;
 }

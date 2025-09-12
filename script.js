@@ -3,6 +3,7 @@ class SistemaXerox {
         this.dados = null;
         this.usuarioEditando = null;
         this.usuarioHistorico = null;
+        this.usuarioEditandoCota = null;
         this.init();
     }
 
@@ -44,18 +45,24 @@ class SistemaXerox {
         this.configurarModal('modalUsuario', 'formUsuario');
         this.configurarModal('modalHistorico');
         this.configurarModal('modalNovoGasto', 'formNovoGasto');
+        this.configurarModal('modalEditarCota', 'formEditarCota');
 
         // Forms
         document.getElementById('formConfiguracoes').addEventListener('submit', (e) => this.salvarConfiguracoes(e));
         document.getElementById('formUsuario').addEventListener('submit', (e) => this.salvarUsuario(e));
         document.getElementById('formNovoGasto').addEventListener('submit', (e) => this.salvarNovoGasto(e));
+        document.getElementById('formEditarCota').addEventListener('submit', (e) => this.salvarEditarCota(e));
 
         // Botões de cancelar
         document.getElementById('btnCancelar').addEventListener('click', () => this.fecharModal('modalUsuario'));
         document.getElementById('btnCancelarGasto').addEventListener('click', () => this.fecharModal('modalNovoGasto'));
+        document.getElementById('btnCancelarEditarCota').addEventListener('click', () => this.fecharModal('modalEditarCota'));
 
         // Botão novo gasto no histórico
         document.getElementById('btnNovoGasto').addEventListener('click', () => this.abrirModalNovoGasto());
+
+        // Atualizar cota restante em tempo real
+        document.getElementById('novaCotaUsada').addEventListener('input', () => this.atualizarCotaRestantePreview());
     }
 
     configurarModal(modalId, formId = null) {
@@ -142,6 +149,7 @@ class SistemaXerox {
             </td>
             <td>
                 <button class="btn btn-info" onclick="sistema.abrirHistorico(${usuario.id})">📊 Histórico</button>
+                <button class="btn btn-warning" onclick="sistema.editarCotaUsada(${usuario.id})">📝 Editar Cota</button>
                 <button class="btn btn-secondary" onclick="sistema.editarUsuario(${usuario.id})">✏️ Editar</button>
                 <button class="btn btn-danger" onclick="sistema.excluirUsuario(${usuario.id})">🗑️ Excluir</button>
             </td>
@@ -295,6 +303,72 @@ class SistemaXerox {
             this.renderizar();
             this.mostrarMensagem('Usuário excluído com sucesso!', 'success');
         }
+    }
+
+    editarCotaUsada(idUsuario) {
+        const usuario = this.dados.usuarios.find(u => u.id === idUsuario);
+        if (!usuario) return;
+
+        this.usuarioEditandoCota = usuario;
+        
+        document.getElementById('tituloModalEditarCota').textContent = `📝 Editar Cota de ${usuario.nome}`;
+        document.getElementById('cotaAtualUsada').value = usuario.cotaUsada;
+        document.getElementById('novaCotaUsada').value = usuario.cotaUsada;
+        document.getElementById('cotaTotalInfo').textContent = usuario.cotaTotal.toLocaleString();
+        document.getElementById('novaCotaRestanteInfo').textContent = usuario.cotaRestante.toLocaleString();
+        document.getElementById('motivoAlteracao').value = '';
+        
+        this.abrirModal('modalEditarCota');
+    }
+
+    atualizarCotaRestantePreview() {
+        if (!this.usuarioEditandoCota) return;
+        
+        const novaCotaUsada = parseInt(document.getElementById('novaCotaUsada').value) || 0;
+        const cotaTotal = this.usuarioEditandoCota.cotaTotal;
+        const novaCotaRestante = cotaTotal - novaCotaUsada;
+        
+        document.getElementById('novaCotaRestanteInfo').textContent = novaCotaRestante.toLocaleString();
+        
+        // Mudar cor se for negativo
+        const span = document.getElementById('novaCotaRestanteInfo');
+        if (novaCotaRestante < 0) {
+            span.style.color = '#dc3545';
+        } else {
+            span.style.color = '#007bff';
+        }
+    }
+
+    salvarEditarCota(e) {
+        e.preventDefault();
+        
+        if (!this.usuarioEditandoCota) return;
+
+        const novaCotaUsada = parseInt(document.getElementById('novaCotaUsada').value);
+        const motivoAlteracao = document.getElementById('motivoAlteracao').value;
+        const cotaAnterior = this.usuarioEditandoCota.cotaUsada;
+
+        // Atualizar dados do usuário
+        this.usuarioEditandoCota.cotaUsada = novaCotaUsada;
+        this.usuarioEditandoCota.cotaRestante = this.usuarioEditandoCota.cotaTotal - novaCotaUsada;
+
+        // Adicionar entrada no histórico
+        if (!this.usuarioEditandoCota.historico) {
+            this.usuarioEditandoCota.historico = [];
+        }
+
+        this.usuarioEditandoCota.historico.push({
+            data: new Date().toISOString().split('T')[0],
+            quantidade: novaCotaUsada - cotaAnterior,
+            tipo: 'ajuste',
+            descricao: `Ajuste manual: ${motivoAlteracao} (de ${cotaAnterior} para ${novaCotaUsada})`
+        });
+
+        this.salvarDadosLocal();
+        this.renderizar();
+        this.fecharModal('modalEditarCota');
+        this.mostrarMensagem(`Cota de ${this.usuarioEditandoCota.nome} atualizada com sucesso!`, 'success');
+        this.usuarioEditandoCota = null;
     }
 
     salvarNovoGasto(e) {

@@ -166,6 +166,34 @@
         </div>
     </div>
 
+    <!-- Modal Editar Cota Usada -->
+    <div id="modalEditarCota" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="tituloModalEditarCota">📝 Editar Cota Usada</h2>
+            <form id="formEditarCota">
+                <div class="form-group">
+                    <label for="cotaAtualUsada">Cota Atual Usada:</label>
+                    <input type="number" id="cotaAtualUsada" readonly class="readonly-input">
+                </div>
+                <div class="form-group">
+                    <label for="novaCotaUsada">Nova Cota Usada:</label>
+                    <input type="number" id="novaCotaUsada" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="motivoAlteracao">Motivo da Alteração:</label>
+                    <input type="text" id="motivoAlteracao" placeholder="Ex: Correção de contagem, ajuste manual..." required>
+                </div>
+                <div class="info-box">
+                    <p><strong>Cota Total:</strong> <span id="cotaTotalInfo">0</span></p>
+                    <p><strong>Nova Cota Restante:</strong> <span id="novaCotaRestanteInfo">0</span></p>
+                </div>
+                <button type="submit" class="btn btn-primary">💾 Salvar Alteração</button>
+                <button type="button" id="btnCancelarEditarCota" class="btn btn-secondary">❌ Cancelar</button>
+            </form>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
