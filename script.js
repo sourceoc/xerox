@@ -9,6 +9,17 @@ class SistemaXerox {
         this.itemsPerPage = 25;
         this.sortField = null;
         this.sortDirection = 'asc';
+        
+        // Virtual scrolling
+        this.virtualScrolling = {
+            enabled: false,
+            rowHeight: 60,
+            containerHeight: 400,
+            visibleRows: 10,
+            startIndex: 0,
+            endIndex: 0,
+            scrollTop: 0
+        };
         this.filtros = {
             nome: '',
             setor: '',
@@ -17,23 +28,104 @@ class SistemaXerox {
             status: ''
         };
         
+        // Para rastrear event listeners e evitar memory leaks
+        this.eventListeners = [];
+        this.boundMethods = {};
+        this.timers = [];
+        this.filterTimeout = null;
+        this.syncInterval = null;
+        
         this.init();
+    }
+
+    // Método para adicionar event listeners de forma rastreável
+    addEventListenerSafe(element, event, handler, options = {}) {
+        if (!element) return;
+        
+        const wrappedHandler = (...args) => handler(...args);
+        element.addEventListener(event, wrappedHandler, options);
+        
+        this.eventListeners.push({
+            element,
+            event,
+            handler: wrappedHandler,
+            options
+        });
+    }
+
+    // Método para remover todos os event listeners
+    removeAllEventListeners() {
+        this.eventListeners.forEach(({ element, event, handler, options }) => {
+            try {
+                element.removeEventListener(event, handler, options);
+            } catch (error) {
+                console.warn('Erro ao remover event listener:', error);
+            }
+        });
+        this.eventListeners = [];
+    }
+
+    // Método para criar métodos bound reutilizáveis
+    getBoundMethod(methodName) {
+        if (!this.boundMethods[methodName]) {
+            this.boundMethods[methodName] = this[methodName].bind(this);
+        }
+        return this.boundMethods[methodName];
+    }
+
+    // Métodos para rastrear timers
+    setTimeoutSafe(callback, delay) {
+        const id = setTimeout(callback, delay);
+        this.timers.push({ id, type: 'timeout' });
+        return id;
+    }
+
+    setIntervalSafe(callback, delay) {
+        const id = setInterval(callback, delay);
+        this.timers.push({ id, type: 'interval' });
+        return id;
     }
 
     async init() {
         await this.loadingState(true);
         
         try {
-            await this.verificarAutenticacao();
-            await this.carregarDados();
-            this.configurarEventos();
-            this.configurarValidacoes();
-            this.renderizar();
-            this.configurarTemas();
+            // Envolver métodos críticos com error boundaries
+            const safeVerificarAuth = window.errorHandler?.withErrorBoundary(
+                this.verificarAutenticacao.bind(this), 
+                { component: 'auth', method: 'verificarAutenticacao' }
+            ) || this.verificarAutenticacao.bind(this);
+            
+            const safeCarregarDados = window.errorHandler?.withErrorBoundary(
+                this.carregarDados.bind(this), 
+                { component: 'data', method: 'carregarDados' }
+            ) || this.carregarDados.bind(this);
+            
+            await safeVerificarAuth();
+            await safeCarregarDados();
+            
+            // Configurações que podem falhar de forma não-crítica
+            try {
+                this.configurarEventos();
+                this.configurarValidacoes();
+                this.renderizar();
+                this.configurarTemas();
+            } catch (configError) {
+                window.errorHandler?.captureException(configError, {
+                    component: 'config',
+                    method: 'init-configuration'
+                });
+                ToastSystem.warning('Algumas funcionalidades podem estar limitadas devido a erros de configuração');
+            }
             
             ToastSystem.success('Sistema carregado com sucesso!');
         } catch (error) {
             console.error('Erro na inicialização:', error);
+            window.errorHandler?.captureException(error, {
+                component: 'system',
+                method: 'init',
+                critical: true
+            });
             ToastSystem.error('Erro ao carregar o sistema: ' + error.message);
         } finally {
             await this.loadingState(false);
@@ -139,7 +231,7 @@ class SistemaXerox {
     }
 
     setupMainEvents() {
-        document.getElementById('btnConfiguracoes')?.addEventListener('click', () => {
+        this.addEventListenerSafe(document.getElementById('btnConfiguracoes'), 'click', () => {
             if (this.hasPermission('admin')) {
                 this.abrirModalConfiguracoes();
             } else {
@@ -147,10 +239,10 @@ class SistemaXerox {
             }
         });
         
-        document.getElementById('btnSincronizar')?.addEventListener('click', () => this.sincronizarDados());
-        document.getElementById('btnNovoUsuario')?.addEventListener('click', () => this.abrirModalUsuario());
-        document.getElementById('btnLogout')?.addEventListener('click', () => this.logout());
-        document.getElementById('btnLimparFiltros')?.addEventListener('click', () => this.limparFiltros());
+        this.addEventListenerSafe(document.getElementById('btnSincronizar'), 'click', this.getBoundMethod('sincronizarDados'));
+        this.addEventListenerSafe(document.getElementById('btnNovoUsuario'), 'click', this.getBoundMethod('abrirModalUsuario'));
+        this.addEventListenerSafe(document.getElementById('btnLogout'), 'click', this.getBoundMethod('logout'));
+        this.addEventListenerSafe(document.getElementById('btnLimparFiltros'), 'click', this.getBoundMethod('limparFiltros'));
     }
 
     setupFormEvents() {
@@ -354,10 +446,51 @@ class SistemaXerox {
         ToastSystem.confirm(
             'Tem certeza que deseja sair do sistema?',
             async () => {
+                // Limpar todos os event listeners para prevenir memory leaks
+                this.removeAllEventListeners();
+                
+                // Limpar intervalos e timeouts
+                this.clearAllTimers();
+                
+                // Limpar dados sensíveis da memória
+                this.dados = null;
+                this.usuarioEditando = null;
+                this.usuarioHistorico = null;
+                this.usuarioEditandoCota = null;
+                
+                // Limpar bound methods
+                this.boundMethods = {};
+                
                 await this.auth.logout();
                 ToastSystem.success('Logout realizado com sucesso');
             }
         );
+    }
+
+    // Método para limpar todos os timers
+    clearAllTimers() {
+        // Limpar qualquer timeout ou interval armazenado
+        if (this.filterTimeout) {
+            clearTimeout(this.filterTimeout);
+            this.filterTimeout = null;
+        }
+        
+        if (this.syncInterval) {
+            clearInterval(this.syncInterval);
+            this.syncInterval = null;
+        }
+        
+        // Limpar qualquer outro timer que possa ter sido criado
+        if (this.timers) {
+            this.timers.forEach(timer => {
+                if (timer.type === 'timeout') {
+                    clearTimeout(timer.id);
+                } else if (timer.type === 'interval') {
+                    clearInterval(timer.id);
+                }
+            });
+            this.timers = [];
+        }
     }
 
     limparFiltros() {
@@ -585,10 +718,66 @@ class SistemaXerox {
         const tbody = document.querySelector('#tabelaUsuarios tbody');
         if (!tbody) return;
 
-        // Aplicar filtros, ordenação e paginação
+        // Aplicar filtros e ordenação
         let usuariosFiltrados = this.filtrarUsuariosDados();
         usuariosFiltrados = this.sortUsers(usuariosFiltrados);
-        const usuariosPaginados = this.getPaginatedUsers(usuariosFiltrados);
+
+        // Verificar se deve usar virtual scrolling (para grandes volumes de dados)
+        if (usuariosFiltrados.length > 100) {
+            this.renderWithVirtualScrolling(tbody, usuariosFiltrados);
+        } else {
+            this.renderWithPagination(tbody, usuariosFiltrados);
+        }
+    }
+
+    renderWithVirtualScrolling(tbody, usuarios) {
+        this.virtualScrolling.enabled = true;
+        const container = tbody.parentElement;
+        const tableContainer = container.parentElement;
+        
+        // Configurar container para virtual scrolling
+        if (!container.classList.contains('virtual-scroll-container')) {
+            container.classList.add('virtual-scroll-container');
+            container.style.height = this.virtualScrolling.containerHeight + 'px';
+            container.style.overflowY = 'auto';
+            container.style.position = 'relative';
+            
+            // Adicionar spacer div
+            this.virtualScrollSpacer = document.createElement('div');
+            this.virtualScrollSpacer.style.height = (usuarios.length * this.virtualScrolling.rowHeight) + 'px';
+            this.virtualScrollSpacer.style.position = 'absolute';
+            this.virtualScrollSpacer.style.top = '0';
+            this.virtualScrollSpacer.style.width = '100%';
+            this.virtualScrollSpacer.style.pointerEvents = 'none';
+            container.insertBefore(this.virtualScrollSpacer, container.firstChild);
+            
+            // Adicionar event listener para scroll
+            this.addEventListenerSafe(container, 'scroll', this.getBoundMethod('handleVirtualScroll'));
+        }
+
+        this.allUsers = usuarios;
+        this.updateVirtualScrollView();
+    }
+
+    renderWithPagination(tbody, usuarios) {
+        this.virtualScrolling.enabled = false;
+        const container = tbody.parentElement;
+        
+        // Remover virtual scrolling se estava ativo
+        if (container.classList.contains('virtual-scroll-container')) {
+            container.classList.remove('virtual-scroll-container');
+            container.style.height = 'auto';
+            container.style.overflowY = 'visible';
+            container.style.position = 'static';
+            
+            if (this.virtualScrollSpacer) {
+                this.virtualScrollSpacer.remove();
+                this.virtualScrollSpacer = null;
+            }
+        }
+
+        // Paginação tradicional
+        const usuariosPaginados = this.getPaginatedUsers(usuarios);
 
         // Limpar tabela
         tbody.innerHTML = '';
@@ -607,7 +796,7 @@ class SistemaXerox {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td colspan="7" class="no-data">
-                    ${usuariosFiltrados.length === 0 ? 
+                    ${usuarios.length === 0 ? 
                         '🔍 Nenhum usuário encontrado com os filtros aplicados' : 
                         '📄 Nenhum usuário nesta página'
                     }
@@ -615,6 +804,71 @@ class SistemaXerox {
             `;
             tbody.appendChild(row);
         }
+    }
+
+    handleVirtualScroll(e) {
+        if (!this.virtualScrolling.enabled) return;
+        
+        const container = e.target;
+        this.virtualScrolling.scrollTop = container.scrollTop;
+        
+        // Debounce para otimizar performance
+        if (this.virtualScrollTimeout) {
+            clearTimeout(this.virtualScrollTimeout);
+        }
+        
+        this.virtualScrollTimeout = this.setTimeoutSafe(() => {
+            this.updateVirtualScrollView();
+        }, 16); // ~60fps
+    }
+
+    updateVirtualScrollView() {
+        if (!this.allUsers || !this.virtualScrolling.enabled) return;
+
+        const tbody = document.querySelector('#tabelaUsuarios tbody');
+        if (!tbody) return;
+
+        // Calcular quais itens devem ser visíveis
+        const scrollTop = this.virtualScrolling.scrollTop;
+        const containerHeight = this.virtualScrolling.containerHeight;
+        const rowHeight = this.virtualScrolling.rowHeight;
+
+        const startIndex = Math.floor(scrollTop / rowHeight);
+        const endIndex = Math.min(
+            startIndex + Math.ceil(containerHeight / rowHeight) + 1,
+            this.allUsers.length
+        );
+
+        // Adicionar buffer para scroll suave
+        const buffer = 3;
+        const bufferedStartIndex = Math.max(0, startIndex - buffer);
+        const bufferedEndIndex = Math.min(this.allUsers.length, endIndex + buffer);
+
+        this.virtualScrolling.startIndex = bufferedStartIndex;
+        this.virtualScrolling.endIndex = bufferedEndIndex;
+
+        // Limpar tbody
+        tbody.innerHTML = '';
+
+        // Criar container para as linhas visíveis
+        const visibleContainer = document.createElement('div');
+        visibleContainer.style.transform = `translateY(${bufferedStartIndex * rowHeight}px)`;
+        visibleContainer.style.position = 'absolute';
+        visibleContainer.style.top = '0';
+        visibleContainer.style.width = '100%';
+
+        // Renderizar apenas as linhas visíveis
+        for (let i = bufferedStartIndex; i < bufferedEndIndex; i++) {
+            const usuario = this.allUsers[i];
+            if (usuario) {
+                const row = this.criarLinhaUsuario(usuario);
+                row.style.height = rowHeight + 'px';
+                row.style.boxSizing = 'border-box';
+                visibleContainer.appendChild(row);
+            }
+        }
+
+        tbody.appendChild(visibleContainer);
     }
 
     criarLinhaUsuario(usuario) {

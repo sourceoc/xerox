@@ -218,6 +218,72 @@ tbody tr:hover {
     background-color: #f8f9fa;
 }
 
+/* Virtual Scrolling */
+.virtual-scroll-container {
+    position: relative !important;
+    overflow-y: auto !important;
+    height: 400px !important;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.virtual-scroll-container table {
+    position: relative;
+    width: 100%;
+}
+
+.virtual-scroll-container tbody {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.virtual-scroll-container thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.virtual-scroll-container thead tr {
+    display: flex;
+    width: 100%;
+}
+
+.virtual-scroll-container tbody tr {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    min-height: 60px;
+    border-bottom: 1px solid #eee;
+}
+
+.virtual-scroll-container th,
+.virtual-scroll-container td {
+    flex: 1;
+    padding: 0.75rem;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Responsive widths for virtual scroll columns */
+.virtual-scroll-container th:nth-child(1),
+.virtual-scroll-container td:nth-child(1) { flex: 2; } /* Nome */
+.virtual-scroll-container th:nth-child(2),
+.virtual-scroll-container td:nth-child(2) { flex: 1; } /* Setor */
+.virtual-scroll-container th:nth-child(3),
+.virtual-scroll-container td:nth-child(3) { flex: 1; } /* Cota Total */
+.virtual-scroll-container th:nth-child(4),
+.virtual-scroll-container td:nth-child(4) { flex: 1; } /* Cota Usada */
+.virtual-scroll-container th:nth-child(5),
+.virtual-scroll-container td:nth-child(5) { flex: 1; } /* Cota Restante */
+.virtual-scroll-container th:nth-child(6),
+.virtual-scroll-container td:nth-child(6) { flex: 1; } /* Status */
+.virtual-scroll-container th:nth-child(7),
+.virtual-scroll-container td:nth-child(7) { flex: 2; } /* Ações */
+
 .progress-bar {
     width: 100%;
     height: 8px;

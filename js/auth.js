@@ -3,6 +3,9 @@ class AuthSystem {
         this.sessionKey = 'xerox-session';
         this.adminKey = 'xerox-admin-hash';
         this.sessionTimeout = 8 * 60 * 60 * 1000; // 8 horas
+        this.rateLimitKey = 'xerox-rate-limit';
+        this.maxAttempts = 5;
+        this.lockoutTime = 15 * 60 * 1000; // 15 minutos
         this.initializeDefaultAdmin();
     }
 
@@ -25,12 +28,75 @@ class AuthSystem {
         return CryptoUtils.hash(password + 'salt_xerox_2025');
     }
 
+    checkRateLimit() {
+        const rateLimitData = JSON.parse(localStorage.getItem(this.rateLimitKey) || '{}');
+        const now = Date.now();
+        
+        // Limpar tentativas antigas (mais de 15 minutos)
+        if (rateLimitData.lockedUntil && now > rateLimitData.lockedUntil) {
+            localStorage.removeItem(this.rateLimitKey);
+            return { allowed: true, remainingAttempts: this.maxAttempts };
+        }
+        
+        // Verificar se está bloqueado
+        if (rateLimitData.lockedUntil && now < rateLimitData.lockedUntil) {
+            const timeLeft = Math.ceil((rateLimitData.lockedUntil - now) / 1000 / 60);
+            return { 
+                allowed: false, 
+                message: `Muitas tentativas. Tente novamente em ${timeLeft} minutos.`,
+                timeLeft: timeLeft
+            };
+        }
+        
+        // Limpar tentativas antigas (mais de 1 hora sem lockout)
+        if (rateLimitData.lastAttempt && (now - rateLimitData.lastAttempt) > 60 * 60 * 1000) {
+            localStorage.removeItem(this.rateLimitKey);
+            return { allowed: true, remainingAttempts: this.maxAttempts };
+        }
+        
+        const attempts = rateLimitData.attempts || 0;
+        const remaining = this.maxAttempts - attempts;
+        
+        return { 
+            allowed: remaining > 0, 
+            remainingAttempts: remaining,
+            message: remaining <= 2 && remaining > 0 ? `Atenção: ${remaining} tentativas restantes` : null
+        };
+    }
+
+    recordFailedAttempt() {
+        const rateLimitData = JSON.parse(localStorage.getItem(this.rateLimitKey) || '{}');
+        const now = Date.now();
+        
+        rateLimitData.attempts = (rateLimitData.attempts || 0) + 1;
+        rateLimitData.lastAttempt = now;
+        
+        if (rateLimitData.attempts >= this.maxAttempts) {
+            rateLimitData.lockedUntil = now + this.lockoutTime;
+        }
+        
+        localStorage.setItem(this.rateLimitKey, JSON.stringify(rateLimitData));
+    }
+
+    clearRateLimit() {
+        localStorage.removeItem(this.rateLimitKey);
+    }
+
     async login(username, password) {
         try {
+            // Verificar rate limiting
+            const rateCheck = this.checkRateLimit();
+            if (!rateCheck.allowed) {
+                return { success: false, message: rateCheck.message };
+            }
+
             const adminData = JSON.parse(localStorage.getItem(this.adminKey) || '{}');
             
             if (adminData.username === username && 
                 adminData.passwordHash === this.hashPassword(password)) {
+                
+                // Login bem-sucedido - limpar rate limiting
+                this.clearRateLimit();
                 
                 const sessionData = {
                     username: username,
@@ -50,7 +116,20 @@ class AuthSystem {
                 return { success: true, user: sessionData };
             }
             
-            return { success: false, message: 'Credenciais inválidas' };
+            // Login falhou - registrar tentativa
+            this.recordFailedAttempt();
+            
+            // Verificar se ainda tem tentativas ou se foi bloqueado
+            const newRateCheck = this.checkRateLimit();
+            let message = 'Credenciais inválidas';
+            
+            if (!newRateCheck.allowed) {
+                message = newRateCheck.message;
+            } else if (newRateCheck.message) {
+                message += '. ' + newRateCheck.message;
+            }
+            
+            return { success: false, message: message };
         } catch (error) {
             console.error('Erro no login:', error);
             return { success: false, message: 'Erro interno do sistema' };
@@ -72,12 +151,12 @@ class AuthSystem {
                 return null;
             }
 
-            // Para descriptografar, precisamos "reverter" o hash (simulação)
             const adminData = JSON.parse(localStorage.getItem(this.adminKey) || '{}');
             if (!adminData.passwordHash) return null;
 
-            // Verificar se a sessão ainda é válida
-            const sessionData = JSON.parse(await CryptoUtils.decrypt(encryptedSession, 'admin123'));
+            // Usar o hash da senha armazenado para descriptografar
+            const decryptionKey = this.deriveDecryptionKey(passwordHash);
+            const sessionData = JSON.parse(await CryptoUtils.decrypt(encryptedSession, decryptionKey));
             
             if (Date.now() > sessionData.expiresAt) {
                 this.logout();
@@ -90,6 +169,11 @@ class AuthSystem {
             this.logout();
             return null;
         }
+    }
+
+    deriveDecryptionKey(passwordHash) {
+        // Deriva uma chave de descriptografia a partir do hash da senha
+        return passwordHash.substring(0, 32) + 'xerox_decrypt_key';
     }
 
     async changePassword(currentPassword, newPassword) {

@@ -36,12 +36,31 @@ class ValidationSystem {
 
     validate(data, fieldName = null) {
         const errors = {};
+        const sanitized = {};
         const fieldsToValidate = fieldName ? [fieldName] : Object.keys(data);
         
         fieldsToValidate.forEach(field => {
             const fieldRules = this.rules.get(field) || [];
-            const value = data[field];
+            let value = data[field];
             
+            // Sanitização XSS primeiro
+            if (typeof value === 'string' && window.xssSanitizer) {
+                const sanitizeOptions = this.getSanitizeOptions(field, fieldRules);
+                const xssValidation = window.xssSanitizer.validateInput(value, sanitizeOptions);
+                
+                if (!xssValidation.isValid) {
+                    if (!errors[field]) errors[field] = [];
+                    errors[field] = errors[field].concat(xssValidation.errors);
+                }
+                
+                // Usar valor sanitizado para validações subsequentes
+                value = xssValidation.sanitized;
+                sanitized[field] = value;
+            } else {
+                sanitized[field] = value;
+            }
+            
+            // Executar regras de validação
             fieldRules.forEach(rule => {
                 const result = this.executeRule(rule, value, data, field);
                 if (!result.isValid) {
@@ -53,8 +72,49 @@ class ValidationSystem {
         
         return {
             isValid: Object.keys(errors).length === 0,
-            errors
+            errors,
+            sanitized
         };
+    }
+
+    getSanitizeOptions(fieldName, rules) {
+        const options = {
+            maxLength: 10000,
+            strictMode: true
+        };
+
+        // Configurações específicas por tipo de campo
+        if (fieldName.includes('email')) {
+            options.maxLength = 320;
+            options.pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        } else if (fieldName.includes('url') || fieldName.includes('link')) {
+            options.maxLength = 2048;
+        } else if (fieldName.includes('nome') || fieldName.includes('name')) {
+            options.maxLength = 255;
+            options.allowBasicFormatting = false;
+        } else if (fieldName.includes('descricao') || fieldName.includes('description')) {
+            options.maxLength = 5000;
+            options.allowBasicFormatting = true;
+            options.strictMode = false;
+        } else if (fieldName.includes('search') || fieldName.includes('filtro')) {
+            options.maxLength = 500;
+            options.strictMode = true;
+        }
+
+        // Verificar regras específicas
+        rules.forEach(rule => {
+            if (rule.maxLength) {
+                options.maxLength = Math.min(options.maxLength, rule.maxLength);
+            }
+            if (rule.minLength) {
+                options.minLength = rule.minLength;
+            }
+            if (rule.pattern) {
+                options.pattern = rule.pattern;
+            }
+        });
+
+        return options;
     }
 
     executeRule(rule, value, allData, fieldName) {

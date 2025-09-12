@@ -6,6 +6,37 @@
     <title>Sistema de Gerenciamento de Cotas Xerox</title>
     <meta name="description" content="Sistema profissional de gerenciamento de cotas de impressão para professores">
     <meta name="keywords" content="xerox, impressão, cotas, gerenciamento, professores">
+    
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval';
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com data:;
+        img-src 'self' data: blob: https:;
+        connect-src 'self' https://api.github.com https://github.com;
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+        frame-ancestors 'none';
+        upgrade-insecure-requests
+    ">
+    
+    <!-- Additional security headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="
+        camera=(),
+        microphone=(),
+        geolocation=(),
+        payment=(),
+        usb=(),
+        magnetometer=(),
+        gyroscope=(),
+        accelerometer=()
+    ">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖨️</text></svg>">
     <link rel="manifest" href="manifest.json">
@@ -342,6 +373,8 @@
         </div>
     </div>
 
+    <script src="js/error-handler.js"></script>
+    <script src="js/xss-sanitizer.js"></script>
     <script src="js/crypto-utils.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/validation.js"></script>

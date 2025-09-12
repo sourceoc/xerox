@@ -2,6 +2,64 @@ const CACHE_NAME = 'xerox-system-v1.0.0';
 const STATIC_CACHE = 'xerox-static-v1.0.0';
 const DYNAMIC_CACHE = 'xerox-dynamic-v1.0.0';
 
+// Configuração de logging otimizada
+const LOG_CONFIG = {
+    enabled: true,
+    level: 'warn', // 'debug', 'info', 'warn', 'error'
+    maxLogEntries: 100,
+    enablePerformanceLogs: false
+};
+
+// Sistema de logging otimizado
+class ServiceWorkerLogger {
+    constructor() {
+        this.logs = [];
+        this.startTime = Date.now();
+    }
+
+    shouldLog(level) {
+        const levels = { debug: 0, info: 1, warn: 2, error: 3 };
+        return LOG_CONFIG.enabled && levels[level] >= levels[LOG_CONFIG.level];
+    }
+
+    log(level, message, data = null) {
+        if (!this.shouldLog(level)) return;
+
+        const logEntry = {
+            timestamp: Date.now(),
+            level,
+            message,
+            data: data ? JSON.stringify(data) : null,
+            uptime: Date.now() - this.startTime
+        };
+
+        // Limitar número de logs em memória
+        if (this.logs.length >= LOG_CONFIG.maxLogEntries) {
+            this.logs.shift();
+        }
+        this.logs.push(logEntry);
+
+        // Log apenas para níveis importantes
+        if (level === 'error') {
+            console.error(`[SW] ${message}`, data);
+        } else if (level === 'warn') {
+            console.warn(`[SW] ${message}`, data);
+        } else if (level === 'debug' && LOG_CONFIG.enablePerformanceLogs) {
+            console.debug(`[SW] ${message}`, data);
+        }
+    }
+
+    debug(message, data) { this.log('debug', message, data); }
+    info(message, data) { this.log('info', message, data); }
+    warn(message, data) { this.log('warn', message, data); }
+    error(message, data) { this.log('error', message, data); }
+
+    getLogs() { return this.logs; }
+    clearLogs() { this.logs = []; }
+}
+
+const logger = new ServiceWorkerLogger();
+
 const STATIC_FILES = [
     '/',
     '/index.html',
@@ -25,42 +83,48 @@ const DYNAMIC_FILES = [
 
 // Install event
 self.addEventListener('install', (event) => {
-    console.log('Service Worker: Installing...');
+    logger.info('Installing Service Worker');
     
     event.waitUntil(
         caches.open(STATIC_CACHE)
             .then((cache) => {
-                console.log('Service Worker: Caching static files');
+                logger.debug('Caching static files', { count: STATIC_FILES.length });
                 return cache.addAll(STATIC_FILES);
             })
             .then(() => {
-                console.log('Service Worker: Static files cached successfully');
+                logger.info('Static files cached successfully');
                 return self.skipWaiting();
             })
             .catch((error) => {
-                console.error('Service Worker: Error caching static files', error);
+                logger.error('Error caching static files', error);
             })
     );
 });
 
 // Activate event
 self.addEventListener('activate', (event) => {
-    console.log('Service Worker: Activating...');
+    logger.info('Activating Service Worker');
     
     event.waitUntil(
         caches.keys()
             .then((cacheNames) => {
+                const oldCaches = cacheNames.filter(name => 
+                    name !== STATIC_CACHE && name !== DYNAMIC_CACHE
+                );
+                
+                if (oldCaches.length > 0) {
+                    logger.info('Cleaning up old caches', { count: oldCaches.length });
+                }
+                
                 return Promise.all(
-                    cacheNames.map((cacheName) => {
-                        if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
-                            console.log('Service Worker: Deleting old cache', cacheName);
-                            return caches.delete(cacheName);
-                        }
+                    oldCaches.map((cacheName) => {
+                        logger.debug('Deleting cache', { cacheName });
+                        return caches.delete(cacheName);
                     })
                 );
             })
             .then(() => {
-                console.log('Service Worker: Activated successfully');
+                logger.info('Service Worker activated successfully');
                 return self.clients.claim();
             })
     );
@@ -87,7 +151,7 @@ self.addEventListener('fetch', (event) => {
             caches.match(request)
                 .then((response) => {
                     if (response) {
-                        console.log('Service Worker: Serving from cache', request.url);
+                        logger.debug('Serving from cache', { url: request.url });
                         return response;
                     }
                     
@@ -132,7 +196,7 @@ self.addEventListener('fetch', (event) => {
                                 }
                             })
                             .catch(() => {
-                                console.log('Service Worker: Network failed, serving from cache');
+                                logger.debug('Network failed, serving from cache');
                             });
                         
                         return response;
@@ -191,7 +255,7 @@ self.addEventListener('fetch', (event) => {
 
 // Background sync
 self.addEventListener('sync', (event) => {
-    console.log('Service Worker: Background sync triggered', event.tag);
+    logger.info('Background sync triggered', { tag: event.tag });
     
     if (event.tag === 'sync-data') {
         event.waitUntil(
@@ -208,7 +272,7 @@ self.addEventListener('sync', (event) => {
 
 // Push notifications
 self.addEventListener('push', (event) => {
-    console.log('Service Worker: Push notification received', event);
+    logger.info('Push notification received');
     
     const options = {
         body: event.data ? event.data.text() : 'Nova notificação do Sistema Xerox',
@@ -242,7 +306,7 @@ self.addEventListener('push', (event) => {
 
 // Notification click
 self.addEventListener('notificationclick', (event) => {
-    console.log('Service Worker: Notification clicked', event);
+    logger.info('Notification clicked', { action: event.action });
     
     event.notification.close();
     
@@ -268,7 +332,7 @@ self.addEventListener('notificationclick', (event) => {
 
 // Message handling
 self.addEventListener('message', (event) => {
-    console.log('Service Worker: Message received', event.data);
+    logger.debug('Message received', { type: event.data?.type });
     
     if (event.data && event.data.type) {
         switch (event.data.type) {
@@ -294,6 +358,29 @@ self.addEventListener('message', (event) => {
                     timestamp: Date.now()
                 });
                 break;
+                
+            case 'GET_LOGS':
+                event.ports[0].postMessage({
+                    logs: logger.getLogs(),
+                    config: LOG_CONFIG
+                });
+                break;
+                
+            case 'CLEAR_LOGS':
+                logger.clearLogs();
+                event.ports[0].postMessage({
+                    success: true,
+                    timestamp: Date.now()
+                });
+                break;
+                
+            case 'UPDATE_LOG_CONFIG':
+                Object.assign(LOG_CONFIG, event.data.config);
+                event.ports[0].postMessage({
+                    success: true,
+                    config: LOG_CONFIG
+                });
+                break;
         }
     }
 });
@@ -301,7 +388,7 @@ self.addEventListener('message', (event) => {
 // Utility functions
 async function syncDataWithServer() {
     try {
-        console.log('Service Worker: Syncing data with server...');
+        logger.info('Syncing data with server');
         
         // This would normally sync with your backend
         // For now, just update timestamp
@@ -316,27 +403,27 @@ async function syncDataWithServer() {
             });
         });
         
-        console.log('Service Worker: Data sync completed');
+        logger.info('Data sync completed');
         return Promise.resolve();
         
     } catch (error) {
-        console.error('Service Worker: Error syncing data', error);
+        logger.error('Error syncing data', error);
         return Promise.reject(error);
     }
 }
 
 async function backupDataToGitHub() {
     try {
-        console.log('Service Worker: Backing up data to GitHub...');
+        logger.info('Backing up data to GitHub');
         
         // This would backup data to GitHub
         // Implementation would depend on authentication and API
         
-        console.log('Service Worker: Backup completed');
+        logger.info('Backup completed');
         return Promise.resolve();
         
     } catch (error) {
-        console.error('Service Worker: Error backing up data', error);
+        logger.error('Error backing up data', error);
         return Promise.reject(error);
     }
 }
@@ -346,7 +433,7 @@ async function cacheUrls(urls) {
         const cache = await caches.open(DYNAMIC_CACHE);
         return cache.addAll(urls);
     } catch (error) {
-        console.error('Service Worker: Error caching URLs', error);
+        logger.error('Error caching URLs', error);
         throw error;
     }
 }
@@ -358,14 +445,14 @@ async function clearCache() {
             cacheNames.map(cacheName => caches.delete(cacheName))
         );
     } catch (error) {
-        console.error('Service Worker: Error clearing cache', error);
+        logger.error('Error clearing cache', error);
         throw error;
     }
 }
 
 // Periodic background sync (if supported)
 self.addEventListener('periodicsync', (event) => {
-    console.log('Service Worker: Periodic sync triggered', event.tag);
+    logger.info('Periodic sync triggered', { tag: event.tag });
     
     if (event.tag === 'daily-backup') {
         event.waitUntil(backupDataToGitHub());
