@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gerenciamento de Cotas Xerox</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🖨️ Gerenciamento de Cotas Xerox</h1>
+            <div class="header-actions">
+                <button id="btnConfiguracoes" class="btn btn-secondary">⚙️ Configurações</button>
+                <button id="btnSincronizar" class="btn btn-primary">🔄 Sincronizar</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Dashboard -->
+            <section class="dashboard">
+                <div class="card">
+                    <h3>Total de Usuários</h3>
+                    <p class="metric" id="totalUsuarios">0</p>
+                </div>
+                <div class="card">
+                    <h3>Cota Total</h3>
+                    <p class="metric" id="cotaTotal">0</p>
+                </div>
+                <div class="card">
+                    <h3>Cota Utilizada</h3>
+                    <p class="metric" id="cotaUtilizada">0</p>
+                </div>
+                <div class="card">
+                    <h3>Cota Restante</h3>
+                    <p class="metric" id="cotaRestante">0</p>
+                </div>
+            </section>
+
+            <!-- Filtros -->
+            <section class="filtros">
+                <input type="text" id="filtroNome" placeholder="Buscar por nome...">
+                <select id="filtroSetor">
+                    <option value="">Todos os setores</option>
+                </select>
+                <button id="btnNovoUsuario" class="btn btn-success">➕ Novo Usuário</button>
+            </section>
+
+            <!-- Tabela de Usuários -->
+            <section class="tabela-usuarios">
+                <table id="tabelaUsuarios">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Setor</th>
+                            <th>Cota Total</th>
+                            <th>Cota Usada</th>
+                            <th>Cota Restante</th>
+                            <th>% Utilizada</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Configurações -->
+    <div id="modalConfiguracoes" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>⚙️ Configurações</h2>
+            <form id="formConfiguracoes">
+                <div class="form-group">
+                    <label for="tokenGithub">Token do GitHub:</label>
+                    <input type="password" id="tokenGithub" placeholder="ghp_xxxxxxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label for="repositorio">Repositório:</label>
+                    <input type="text" id="repositorio" placeholder="usuario/repositorio">
+                </div>
+                <button type="submit" class="btn btn-primary">💾 Salvar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Usuário -->
+    <div id="modalUsuario" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="tituloModalUsuario">👤 Novo Usuário</h2>
+            <form id="formUsuario">
+                <div class="form-group">
+                    <label for="nomeUsuario">Nome:</label>
+                    <input type="text" id="nomeUsuario" required>
+                </div>
+                <div class="form-group">
+                    <label for="setorUsuario">Setor:</label>
+                    <input type="text" id="setorUsuario" required>
+                </div>
+                <div class="form-group">
+                    <label for="cotaTotalUsuario">Cota Total:</label>
+                    <input type="number" id="cotaTotalUsuario" required min="0">
+                </div>
+                <button type="submit" class="btn btn-primary">💾 Salvar</button>
+                <button type="button" id="btnCancelar" class="btn btn-secondary">❌ Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Histórico -->
+    <div id="modalHistorico" class="modal">
+        <div class="modal-content wide">
+            <span class="close">&times;</span>
+            <h2 id="tituloModalHistorico">📊 Histórico de Uso</h2>
+            <div class="historico-actions">
+                <button id="btnNovoGasto" class="btn btn-success">➕ Novo Gasto</button>
+            </div>
+            <table id="tabelaHistorico">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Quantidade</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Novo Gasto -->
+    <div id="modalNovoGasto" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>💰 Novo Gasto</h2>
+            <form id="formNovoGasto">
+                <div class="form-group">
+                    <label for="dataGasto">Data:</label>
+                    <input type="date" id="dataGasto" required>
+                </div>
+                <div class="form-group">
+                    <label for="quantidadeGasto">Quantidade:</label>
+                    <input type="number" id="quantidadeGasto" required min="1">
+                </div>
+                <div class="form-group">
+                    <label for="tipoGasto">Tipo:</label>
+                    <select id="tipoGasto" required>
+                        <option value="impressão">Impressão</option>
+                        <option value="cópia">Cópia</option>
+                        <option value="digitalização">Digitalização</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="descricaoGasto">Descrição:</label>
+                    <input type="text" id="descricaoGasto" required>
+                </div>
+                <button type="submit" class="btn btn-primary">💾 Salvar</button>
+                <button type="button" id="btnCancelarGasto" class="btn btn-secondary">❌ Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

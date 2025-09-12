@@ -1,0 +1,377 @@
+﻿{
+    "usuarios":  [
+                     {
+                         "id":  1,
+                         "cotaTotal":  500,
+                         "cotaRestante":  484,
+                         "setor":  "Professores",
+                         "cotaUsada":  16,
+                         "nome":  "ANA CLAUDIA RUIZ",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  16
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  2,
+                         "cotaTotal":  500,
+                         "cotaRestante":  440,
+                         "setor":  "Professores",
+                         "cotaUsada":  60,
+                         "nome":  "ANSELMO PROVAZI",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  60
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  3,
+                         "cotaTotal":  500,
+                         "cotaRestante":  241,
+                         "setor":  "Professores",
+                         "cotaUsada":  259,
+                         "nome":  "ALESSANDRA BONATO ALTRAN",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  259
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  4,
+                         "cotaTotal":  500,
+                         "cotaRestante":  267,
+                         "setor":  "Professores",
+                         "cotaUsada":  233,
+                         "nome":  "BRUNO FONSECA",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  233
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  5,
+                         "cotaTotal":  500,
+                         "cotaRestante":  167,
+                         "setor":  "Professores",
+                         "cotaUsada":  333,
+                         "nome":  "CLAUDIA CILENE",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  333
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  6,
+                         "cotaTotal":  500,
+                         "cotaRestante":  390,
+                         "setor":  "Professores",
+                         "cotaUsada":  110,
+                         "nome":  "CRISTINA AP CANASSA",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  110
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  7,
+                         "cotaTotal":  500,
+                         "cotaRestante":  177,
+                         "setor":  "Professores",
+                         "cotaUsada":  323,
+                         "nome":  "ILEIA RIBEIRO",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  323
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  8,
+                         "cotaTotal":  500,
+                         "cotaRestante":  394,
+                         "setor":  "Professores",
+                         "cotaUsada":  106,
+                         "nome":  "LARA CRISTINA",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  106
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  9,
+                         "cotaTotal":  500,
+                         "cotaRestante":  470,
+                         "setor":  "Professores",
+                         "cotaUsada":  30,
+                         "nome":  "ROSANA BARBOSA",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  30
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  10,
+                         "cotaTotal":  500,
+                         "cotaRestante":  233,
+                         "setor":  "Professores",
+                         "cotaUsada":  267,
+                         "nome":  "MURILO ALEXANDRE",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  267
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  11,
+                         "cotaTotal":  500,
+                         "cotaRestante":  323,
+                         "setor":  "Professores",
+                         "cotaUsada":  177,
+                         "nome":  "SANDRA CRISTINA LIMA",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  177
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  12,
+                         "cotaTotal":  500,
+                         "cotaRestante":  113,
+                         "setor":  "Professores",
+                         "cotaUsada":  387,
+                         "nome":  "MARCIA PINHEIRO",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  387
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  13,
+                         "cotaTotal":  500,
+                         "cotaRestante":  318,
+                         "setor":  "Professores",
+                         "cotaUsada":  182,
+                         "nome":  "NATALIA CARVALHO",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  182
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  14,
+                         "cotaTotal":  500,
+                         "cotaRestante":  500,
+                         "setor":  "Professores",
+                         "cotaUsada":  0,
+                         "nome":  "NATALIA MARINO",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  0
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  15,
+                         "cotaTotal":  500,
+                         "cotaRestante":  227,
+                         "setor":  "Professores",
+                         "cotaUsada":  273,
+                         "nome":  "NEUSA CRISTINA",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  273
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  16,
+                         "cotaTotal":  500,
+                         "cotaRestante":  464,
+                         "setor":  "Professores",
+                         "cotaUsada":  36,
+                         "nome":  "MARIA FERREIRA",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  36
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  17,
+                         "cotaTotal":  500,
+                         "cotaRestante":  500,
+                         "setor":  "Professores",
+                         "cotaUsada":  0,
+                         "nome":  "JOÃO MORITA",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  0
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  18,
+                         "cotaTotal":  500,
+                         "cotaRestante":  300,
+                         "setor":  "Professores",
+                         "cotaUsada":  200,
+                         "nome":  "QUINHA",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  200
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  19,
+                         "cotaTotal":  500,
+                         "cotaRestante":  483,
+                         "setor":  "Professores",
+                         "cotaUsada":  17,
+                         "nome":  "EVA MOREIRA",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  17
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  20,
+                         "cotaTotal":  500,
+                         "cotaRestante":  418,
+                         "setor":  "Professores",
+                         "cotaUsada":  82,
+                         "nome":  "RENATA PAULO",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  82
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  21,
+                         "cotaTotal":  500,
+                         "cotaRestante":  333,
+                         "setor":  "Professores",
+                         "cotaUsada":  167,
+                         "nome":  "EDNA MARLI",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  167
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  22,
+                         "cotaTotal":  500,
+                         "cotaRestante":  398,
+                         "setor":  "Professores",
+                         "cotaUsada":  102,
+                         "nome":  "MARISTELA SALATA",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  102
+                                           }
+                                       ]
+                     },
+                     {
+                         "id":  23,
+                         "cotaTotal":  500,
+                         "cotaRestante":  482,
+                         "setor":  "Professores",
+                         "cotaUsada":  18,
+                         "nome":  "MIRIAN ALVES",
+                         "historico":  [
+                                           {
+                                               "descricao":  "Dados importados do COTA.xlsx",
+                                               "tipo":  "impressÃ£o",
+                                               "data":  "2025-09-12",
+                                               "quantidade":  18
+                                           }
+                                       ]
+                     }
+                 ],
+    "configuracoes":  {
+                          "tokenGithub":  "",
+                          "repositorio":  "",
+                          "ultimaAtualizacao":  "2025-09-12T07:32:40Z"
+                      }
+}
