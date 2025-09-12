@@ -985,10 +985,36 @@ class SistemaXerox {
 
     // Métodos CRUD e funcionalidades principais
     
-    abrirModalConfiguracoes() {
-        document.getElementById('tokenGithub').value = this.dados.configuracoes.tokenGithub || '';
-        document.getElementById('repositorio').value = this.dados.configuracoes.repositorio || '';
-        this.abrirModal('modalConfiguracoes');
+    async abrirModalConfiguracoes() {
+        try {
+            // Carregar configurações públicas
+            const publicConfig = window.secureStorage.getPublicConfig();
+            document.getElementById('repositorio').value = publicConfig.repositorio || '';
+            
+            // Para o token, mostrar apenas se existe (mascarado)
+            const tokenData = await window.secureStorage.getGitHubToken();
+            const tokenField = document.getElementById('tokenGithub');
+            
+            if (tokenData && tokenData.token) {
+                const maskedToken = window.secureStorage.maskToken(tokenData.token);
+                tokenField.placeholder = `Token configurado: ${maskedToken}`;
+                tokenField.value = '';
+            } else {
+                tokenField.placeholder = 'Cole seu GitHub Personal Access Token aqui';
+                tokenField.value = '';
+            }
+            
+            this.abrirModal('modalConfiguracoes');
+        } catch (error) {
+            window.errorHandler?.captureException(error, {
+                component: 'system',
+                method: 'abrirModalConfiguracoes'
+            });
+            // Fallback para método simples
+            document.getElementById('repositorio').value = this.dados.configuracoes.repositorio || '';
+            document.getElementById('tokenGithub').value = '';
+            this.abrirModal('modalConfiguracoes');
+        }
     }
 
     abrirModalUsuario(usuario = null) {
@@ -1123,16 +1149,63 @@ class SistemaXerox {
         );
     }
 
-    salvarConfiguracoes(e) {
+    async salvarConfiguracoes(e) {
         e.preventDefault();
         
-        this.dados.configuracoes.tokenGithub = document.getElementById('tokenGithub').value;
-        this.dados.configuracoes.repositorio = document.getElementById('repositorio').value;
-        this.dados.configuracoes.ultimaAtualizacao = new Date().toISOString();
+        const tokenGithub = document.getElementById('tokenGithub').value.trim();
+        const repositorio = document.getElementById('repositorio').value.trim();
         
-        this.salvarDadosLocal();
-        this.fecharModal('modalConfiguracoes');
-        ToastSystem.success('Configurações salvas com sucesso!');
+        try {
+            // Validar token se fornecido
+            if (tokenGithub) {
+                const tokenValidation = window.secureStorage.validateGitHubToken(tokenGithub);
+                if (!tokenValidation.valid) {
+                    ToastSystem.error(tokenValidation.error);
+                    return;
+                }
+                
+                // Salvar token de forma segura
+                const saved = await window.secureStorage.saveGitHubToken(tokenGithub, repositorio);
+                if (!saved) {
+                    ToastSystem.error('Erro ao salvar token de forma segura');
+                    return;
+                }
+                
+                // Testar conexão
+                ToastSystem.info('Testando conexão com GitHub...');
+                const testResult = await window.secureStorage.testGitHubConnection();
+                
+                if (!testResult.success) {
+                    ToastSystem.error(`Erro na conexão: ${testResult.error}`);
+                    return;
+                }
+                
+                ToastSystem.success(`Conectado com sucesso ao repositório: ${testResult.repository}`);
+            }
+            
+            // Salvar configurações públicas (não-sensíveis)
+            const publicConfig = {
+                repositorio: repositorio,
+                ultimaAtualizacao: new Date().toISOString()
+            };
+            
+            window.secureStorage.savePublicConfig(publicConfig);
+            this.dados.configuracoes = { ...this.dados.configuracoes, ...publicConfig };
+            
+            // Remover token das configurações principais (agora está seguro)
+            delete this.dados.configuracoes.tokenGithub;
+            
+            this.salvarDadosLocal();
+            this.fecharModal('modalConfiguracoes');
+            ToastSystem.success('Configurações salvas com sucesso!');
+            
+        } catch (error) {
+            window.errorHandler?.captureException(error, {
+                component: 'system',
+                method: 'salvarConfiguracoes'
+            });
+            ToastSystem.error('Erro ao salvar configurações: ' + error.message);
+        }
     }
 
     salvarUsuario(data) {
@@ -1255,8 +1328,10 @@ class SistemaXerox {
         Utils.showLoadingState(btnSincronizar, true);
 
         try {
-            if (!this.dados.configuracoes.tokenGithub || !this.dados.configuracoes.repositorio) {
-                throw new Error('Configure o token do GitHub e o repositório nas configurações');
+            // Verificar se token está configurado e válido
+            const isValidToken = await window.secureStorage.isTokenValid();
+            if (!isValidToken) {
+                throw new Error('Configure o token do GitHub nas configurações ou token expirado');
             }
 
             // Tentar baixar dados do GitHub primeiro
@@ -1268,6 +1343,10 @@ class SistemaXerox {
             ToastSystem.success('Dados sincronizados com sucesso!');
         } catch (error) {
             console.error('Erro na sincronização:', error);
+            window.errorHandler?.captureException(error, {
+                component: 'system',
+                method: 'sincronizarDados'
+            });
             ToastSystem.error(`Erro na sincronização: ${error.message}`);
         } finally {
             Utils.showLoadingState(btnSincronizar, false);
@@ -1275,15 +1354,17 @@ class SistemaXerox {
     }
 
     async baixarDadosGithub() {
-        const { tokenGithub, repositorio } = this.dados.configuracoes;
-        
         try {
-            const response = await fetch(`https://api.github.com/repos/${repositorio}/contents/data.json`, {
-                headers: {
-                    'Authorization': `token ${tokenGithub}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
+            const { url, options } = await window.secureStorage.createSecureGitHubRequest(
+                'https://api.github.com/repos/{REPO}/contents/data.json',
+                { method: 'GET' }
+            );
+            
+            // Substituir placeholder pelo repositório real
+            const tokenData = await window.secureStorage.getGitHubToken();
+            const finalUrl = url.replace('{REPO}', tokenData.repository);
+
+            const response = await fetch(finalUrl, options);
 
             if (response.ok) {
                 const data = await response.json();
@@ -1306,19 +1387,20 @@ class SistemaXerox {
     }
 
     async enviarDadosGithub() {
-        const { tokenGithub, repositorio } = this.dados.configuracoes;
-        
-        this.dados.configuracoes.ultimaAtualizacao = new Date().toISOString();
-        
-        // Verificar se o arquivo já existe
-        let sha = null;
         try {
-            const response = await fetch(`https://api.github.com/repos/${repositorio}/contents/data.json`, {
-                headers: {
-                    'Authorization': `token ${tokenGithub}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
+            this.dados.configuracoes.ultimaAtualizacao = new Date().toISOString();
+            
+            // Verificar se o arquivo já existe
+            let sha = null;
+            const { url: checkUrl, options: checkOptions } = await window.secureStorage.createSecureGitHubRequest(
+                'https://api.github.com/repos/{REPO}/contents/data.json',
+                { method: 'GET' }
+            );
+            
+            const tokenData = await window.secureStorage.getGitHubToken();
+            const finalCheckUrl = checkUrl.replace('{REPO}', tokenData.repository);
+            
+            const response = await fetch(finalCheckUrl, checkOptions);
             
             if (response.ok) {
                 const data = await response.json();
@@ -1338,15 +1420,16 @@ class SistemaXerox {
             body.sha = sha;
         }
 
-        const response = await fetch(`https://api.github.com/repos/${repositorio}/contents/data.json`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `token ${tokenGithub}`,
-                'Accept': 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-        });
+        const { url: uploadUrl, options: uploadOptions } = await window.secureStorage.createSecureGitHubRequest(
+            'https://api.github.com/repos/{REPO}/contents/data.json',
+            {
+                method: 'PUT',
+                body: JSON.stringify(body)
+            }
+        );
+        
+        const finalUploadUrl = uploadUrl.replace('{REPO}', tokenData.repository);
+        const uploadResponse = await fetch(finalUploadUrl, uploadOptions);
 
         if (!response.ok) {
             const error = await response.json();
