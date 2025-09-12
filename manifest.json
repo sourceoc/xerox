@@ -1,0 +1,83 @@
+{
+    "name": "Sistema de Gerenciamento de Cotas Xerox",
+    "short_name": "Xerox Manager",
+    "description": "Sistema profissional para gerenciar cotas de impressão de professores",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#667eea",
+    "theme_color": "#667eea",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "pt-BR",
+    "categories": ["productivity", "business", "education"],
+    "icons": [
+        {
+            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23667eea'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='300' fill='white'%3E🖨️%3C/text%3E%3C/svg%3E",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23667eea'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='300' fill='white'%3E🖨️%3C/text%3E%3C/svg%3E",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Novo Usuário",
+            "short_name": "Novo",
+            "description": "Adicionar novo usuário ao sistema",
+            "url": "/?action=new-user",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='16' fill='%23667eea'%3E👤%3C/text%3E%3C/svg%3E",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Relatórios",
+            "short_name": "Relatório",
+            "description": "Exportar relatórios do sistema",
+            "url": "/?action=export",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='16' fill='%23667eea'%3E📊%3C/text%3E%3C/svg%3E",
+                    "sizes": "96x96"
+                }
+            ]
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'%3E%3Crect width='540' height='720' fill='%23f5f5f5'/%3E%3Crect x='20' y='20' width='500' height='680' fill='white' rx='10'/%3E%3Ctext x='270' y='100' dominant-baseline='middle' text-anchor='middle' font-size='24' fill='%23333'%3ESistema Xerox%3C/text%3E%3C/svg%3E",
+            "sizes": "540x720",
+            "type": "image/svg+xml",
+            "form_factor": "narrow",
+            "label": "Tela principal do sistema"
+        }
+    ],
+    "prefer_related_applications": false,
+    "related_applications": [],
+    "share_target": {
+        "action": "/",
+        "method": "GET",
+        "enctype": "application/x-www-form-urlencoded",
+        "params": {
+            "title": "title",
+            "text": "text",
+            "url": "url"
+        }
+    },
+    "protocol_handlers": [
+        {
+            "protocol": "web+xerox",
+            "url": "/?protocol=%s"
+        }
+    ],
+    "edge_side_panel": {
+        "preferred_width": 400
+    }
+}

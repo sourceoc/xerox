@@ -4,21 +4,104 @@ class SistemaXerox {
         this.usuarioEditando = null;
         this.usuarioHistorico = null;
         this.usuarioEditandoCota = null;
+        this.auth = new AuthSystem();
+        this.currentPage = 1;
+        this.itemsPerPage = 25;
+        this.sortField = null;
+        this.sortDirection = 'asc';
+        this.filtros = {
+            nome: '',
+            setor: '',
+            dataInicio: '',
+            dataFim: '',
+            status: ''
+        };
+        
         this.init();
     }
 
     async init() {
-        await this.carregarDados();
-        this.configurarEventos();
-        this.renderizar();
+        await this.loadingState(true);
+        
+        try {
+            await this.verificarAutenticacao();
+            await this.carregarDados();
+            this.configurarEventos();
+            this.configurarValidacoes();
+            this.renderizar();
+            this.configurarTemas();
+            
+            ToastSystem.success('Sistema carregado com sucesso!');
+        } catch (error) {
+            console.error('Erro na inicialização:', error);
+            ToastSystem.error('Erro ao carregar o sistema: ' + error.message);
+        } finally {
+            await this.loadingState(false);
+        }
+    }
+
+    async verificarAutenticacao() {
+        const isAuthenticated = await RouteProtection.checkAuth();
+        if (!isAuthenticated) {
+            this.showLoginModal();
+            return;
+        }
+        
+        this.updateUserInterface();
+    }
+
+    updateUserInterface() {
+        const userInfo = document.getElementById('userInfo');
+        const userName = document.getElementById('userName');
+        const btnLogout = document.getElementById('btnLogout');
+        
+        if (userInfo) userInfo.classList.add('authenticated');
+        if (userName) userName.textContent = '👤 admin';
+        if (btnLogout) btnLogout.style.display = 'inline-block';
+    }
+
+    showLoginModal() {
+        const modal = document.getElementById('modalLogin');
+        if (modal) {
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+        }
+    }
+
+    async loadingState(show) {
+        const container = document.querySelector('.container');
+        if (!container) return;
+
+        if (show) {
+            const overlay = Utils.createLoadingOverlay('Carregando sistema...');
+            container.appendChild(overlay);
+        } else {
+            const overlay = container.querySelector('.loading-overlay');
+            if (overlay) Utils.removeLoadingOverlay(overlay);
+        }
     }
 
     async carregarDados() {
         try {
+            // Tentar carregar dados locais primeiro
+            if (this.carregarDadosLocal()) {
+                console.log('Dados carregados do localStorage');
+                return;
+            }
+            
+            // Carregar dados do arquivo JSON
             const response = await fetch('data.json');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             this.dados = await response.json();
+            this.salvarDadosLocal();
+            
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
+            
+            // Dados padrão em caso de erro
             this.dados = {
                 usuarios: [],
                 configuracoes: {
@@ -27,60 +110,438 @@ class SistemaXerox {
                     ultimaAtualizacao: new Date().toISOString()
                 }
             };
+            
+            ToastSystem.warning('Dados padrão carregados devido a erro no carregamento');
         }
     }
 
     configurarEventos() {
-        // Botões principais
-        document.getElementById('btnConfiguracoes').addEventListener('click', () => this.abrirModalConfiguracoes());
-        document.getElementById('btnSincronizar').addEventListener('click', () => this.sincronizarDados());
-        document.getElementById('btnNovoUsuario').addEventListener('click', () => this.abrirModalUsuario());
-
-        // Filtros
-        document.getElementById('filtroNome').addEventListener('input', () => this.filtrarUsuarios());
-        document.getElementById('filtroSetor').addEventListener('change', () => this.filtrarUsuarios());
-
-        // Modais
-        this.configurarModal('modalConfiguracoes', 'formConfiguracoes');
-        this.configurarModal('modalUsuario', 'formUsuario');
-        this.configurarModal('modalHistorico');
-        this.configurarModal('modalNovoGasto', 'formNovoGasto');
-        this.configurarModal('modalEditarCota', 'formEditarCota');
-
-        // Forms
-        document.getElementById('formConfiguracoes').addEventListener('submit', (e) => this.salvarConfiguracoes(e));
-        document.getElementById('formUsuario').addEventListener('submit', (e) => this.salvarUsuario(e));
-        document.getElementById('formNovoGasto').addEventListener('submit', (e) => this.salvarNovoGasto(e));
-        document.getElementById('formEditarCota').addEventListener('submit', (e) => this.salvarEditarCota(e));
-
-        // Botões de cancelar
-        document.getElementById('btnCancelar').addEventListener('click', () => this.fecharModal('modalUsuario'));
-        document.getElementById('btnCancelarGasto').addEventListener('click', () => this.fecharModal('modalNovoGasto'));
-        document.getElementById('btnCancelarEditarCota').addEventListener('click', () => this.fecharModal('modalEditarCota'));
-
-        // Botão novo gasto no histórico
-        document.getElementById('btnNovoGasto').addEventListener('click', () => this.abrirModalNovoGasto());
-
-        // Atualizar cota restante em tempo real
-        document.getElementById('novaCotaUsada').addEventListener('input', () => this.atualizarCotaRestantePreview());
+        // Eventos principais
+        this.setupMainEvents();
+        
+        // Eventos de formulários
+        this.setupFormEvents();
+        
+        // Eventos de filtros com debounce
+        this.setupFilterEvents();
+        
+        // Eventos de paginação
+        this.setupPaginationEvents();
+        
+        // Eventos de ordenação
+        this.setupSortingEvents();
+        
+        // Eventos de modais
+        this.setupModalEvents();
+        
+        // Eventos de tema
+        this.setupThemeEvents();
     }
 
-    configurarModal(modalId, formId = null) {
-        const modal = document.getElementById(modalId);
-        const closeBtn = modal.querySelector('.close');
+    setupMainEvents() {
+        document.getElementById('btnConfiguracoes')?.addEventListener('click', () => {
+            if (this.hasPermission('admin')) {
+                this.abrirModalConfiguracoes();
+            } else {
+                ToastSystem.error('Acesso negado: permissões insuficientes');
+            }
+        });
+        
+        document.getElementById('btnSincronizar')?.addEventListener('click', () => this.sincronizarDados());
+        document.getElementById('btnNovoUsuario')?.addEventListener('click', () => this.abrirModalUsuario());
+        document.getElementById('btnLogout')?.addEventListener('click', () => this.logout());
+        document.getElementById('btnLimparFiltros')?.addEventListener('click', () => this.limparFiltros());
+    }
 
-        closeBtn.addEventListener('click', () => this.fecharModal(modalId));
+    setupFormEvents() {
+        // Login
+        const formLogin = document.getElementById('formLogin');
+        if (formLogin) {
+            CommonValidators.login.setupFormValidation('formLogin');
+            formLogin.addEventListener('validationSuccess', (e) => this.handleLogin(e.detail));
+            formLogin.addEventListener('validationError', (e) => {
+                ToastSystem.error('Preencha todos os campos corretamente');
+            });
+        }
 
-        window.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                this.fecharModal(modalId);
+        // Usuário
+        const formUsuario = document.getElementById('formUsuario');
+        if (formUsuario) {
+            CommonValidators.usuario.setupFormValidation('formUsuario');
+            formUsuario.addEventListener('validationSuccess', (e) => this.salvarUsuario(e.detail));
+        }
+
+        // Gasto
+        const formNovoGasto = document.getElementById('formNovoGasto');
+        if (formNovoGasto) {
+            CommonValidators.gasto.setupFormValidation('formNovoGasto');
+            formNovoGasto.addEventListener('validationSuccess', (e) => this.salvarNovoGasto(e.detail));
+        }
+
+        // Alterar senha
+        const formAlterarSenha = document.getElementById('formAlterarSenha');
+        if (formAlterarSenha) {
+            CommonValidators.senha.setupFormValidation('formAlterarSenha');
+            formAlterarSenha.addEventListener('validationSuccess', (e) => this.alterarSenha(e.detail));
+        }
+
+        // Configurações
+        const formConfiguracoes = document.getElementById('formConfiguracoes');
+        formConfiguracoes?.addEventListener('submit', (e) => this.salvarConfiguracoes(e));
+
+        // Editar cota
+        const formEditarCota = document.getElementById('formEditarCota');
+        formEditarCota?.addEventListener('submit', (e) => this.salvarEditarCota(e));
+    }
+
+    setupFilterEvents() {
+        const filtroNome = document.getElementById('filtroNome');
+        const filtroSetor = document.getElementById('filtroSetor');
+        const filtroStatus = document.getElementById('filtroStatus');
+        const filtroDataInicio = document.getElementById('filtroDataInicio');
+        const filtroDataFim = document.getElementById('filtroDataFim');
+
+        // Debounce para filtro de nome
+        if (filtroNome) {
+            const debouncedFilter = Utils.debounce(() => {
+                this.filtros.nome = filtroNome.value.toLowerCase();
+                this.aplicarFiltros();
+            }, 300);
+            
+            filtroNome.addEventListener('input', debouncedFilter);
+        }
+
+        // Filtros instantâneos
+        filtroSetor?.addEventListener('change', () => {
+            this.filtros.setor = filtroSetor.value;
+            this.aplicarFiltros();
+        });
+
+        filtroStatus?.addEventListener('change', () => {
+            this.filtros.status = filtroStatus.value;
+            this.aplicarFiltros();
+        });
+
+        filtroDataInicio?.addEventListener('change', () => {
+            this.filtros.dataInicio = filtroDataInicio.value;
+            this.aplicarFiltros();
+        });
+
+        filtroDataFim?.addEventListener('change', () => {
+            this.filtros.dataFim = filtroDataFim.value;
+            this.aplicarFiltros();
+        });
+    }
+
+    setupPaginationEvents() {
+        document.getElementById('btnPrimeiraPagina')?.addEventListener('click', () => this.irParaPagina(1));
+        document.getElementById('btnPaginaAnterior')?.addEventListener('click', () => this.irParaPagina(this.currentPage - 1));
+        document.getElementById('btnProximaPagina')?.addEventListener('click', () => this.irParaPagina(this.currentPage + 1));
+        document.getElementById('btnUltimaPagina')?.addEventListener('click', () => this.irParaPagina(this.getTotalPages()));
+        
+        document.getElementById('itensPorPagina')?.addEventListener('change', (e) => {
+            this.itemsPerPage = parseInt(e.target.value) || 25;
+            this.currentPage = 1;
+            this.renderizarTabelaUsuarios();
+        });
+    }
+
+    setupSortingEvents() {
+        const headers = document.querySelectorAll('th[data-sort]');
+        headers.forEach(header => {
+            header.addEventListener('click', () => this.sortTable(header.dataset.sort));
+            header.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.sortTable(header.dataset.sort);
+                }
+            });
+        });
+    }
+
+    setupModalEvents() {
+        // Fechar modais clicando fora ou no X
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                this.fecharModal(e.target.id);
+            } else if (e.target.classList.contains('close')) {
+                this.fecharModal(e.target.closest('.modal').id);
             }
         });
 
-        if (formId) {
-            const form = document.getElementById(formId);
-            form.addEventListener('submit', (e) => e.preventDefault());
+        // Fechar modais com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modalsAbertos = document.querySelectorAll('.modal[style*="block"]');
+                modalsAbertos.forEach(modal => this.fecharModal(modal.id));
+            }
+        });
+
+        // Botões de cancelar
+        document.querySelectorAll('[id^="btnCancelar"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const modal = btn.closest('.modal');
+                if (modal) this.fecharModal(modal.id);
+            });
+        });
+
+        // Configurar modais específicos
+        document.getElementById('btnNovoGasto')?.addEventListener('click', () => this.abrirModalNovoGasto());
+    }
+
+    setupThemeEvents() {
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => this.toggleTheme());
         }
+    }
+
+    configurarValidacoes() {
+        // As validações já foram configuradas nos eventos dos formulários
+        // Aqui podemos adicionar validações customizadas se necessário
+        
+        // Validação em tempo real para cota restante
+        const novaCotaUsada = document.getElementById('novaCotaUsada');
+        if (novaCotaUsada) {
+            novaCotaUsada.addEventListener('input', () => this.atualizarCotaRestantePreview());
+        }
+    }
+
+    configurarTemas() {
+        // Carregar tema salvo
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        this.setTheme(savedTheme);
+    }
+
+    toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        this.setTheme(newTheme);
+    }
+
+    setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        
+        const toggle = document.getElementById('themeToggle');
+        if (toggle) {
+            toggle.classList.toggle('dark', theme === 'dark');
+        }
+    }
+
+    async handleLogin(data) {
+        const loadingToast = ToastSystem.loading('Fazendo login...');
+        
+        try {
+            const result = await this.auth.login(data.loginUsuario, data.loginSenha);
+            ToastSystem.close(loadingToast);
+            
+            if (result.success) {
+                ToastSystem.success(`Bem-vindo, ${result.user.username}!`);
+                this.fecharModal('modalLogin');
+                this.updateUserInterface();
+            } else {
+                ToastSystem.error(result.message);
+            }
+        } catch (error) {
+            ToastSystem.close(loadingToast);
+            ToastSystem.error('Erro interno no login');
+            console.error('Erro no login:', error);
+        }
+    }
+
+    async logout() {
+        ToastSystem.confirm(
+            'Tem certeza que deseja sair do sistema?',
+            async () => {
+                await this.auth.logout();
+                ToastSystem.success('Logout realizado com sucesso');
+            }
+        );
+    }
+
+    limparFiltros() {
+        // Limpar campos de filtro
+        document.getElementById('filtroNome').value = '';
+        document.getElementById('filtroSetor').value = '';
+        document.getElementById('filtroStatus').value = '';
+        document.getElementById('filtroDataInicio').value = '';
+        document.getElementById('filtroDataFim').value = '';
+        
+        // Resetar filtros internos
+        this.filtros = {
+            nome: '',
+            setor: '',
+            dataInicio: '',
+            dataFim: '',
+            status: ''
+        };
+        
+        // Aplicar filtros vazios
+        this.aplicarFiltros();
+        ToastSystem.info('Filtros limpos');
+    }
+
+    aplicarFiltros() {
+        this.currentPage = 1; // Resetar para primeira página
+        this.renderizarTabelaUsuarios();
+    }
+
+    filtrarUsuariosDados() {
+        let usuariosFiltrados = [...this.dados.usuarios];
+
+        // Filtro por nome
+        if (this.filtros.nome) {
+            usuariosFiltrados = usuariosFiltrados.filter(usuario =>
+                usuario.nome.toLowerCase().includes(this.filtros.nome)
+            );
+        }
+
+        // Filtro por setor
+        if (this.filtros.setor) {
+            usuariosFiltrados = usuariosFiltrados.filter(usuario =>
+                usuario.setor === this.filtros.setor
+            );
+        }
+
+        // Filtro por status
+        if (this.filtros.status) {
+            usuariosFiltrados = usuariosFiltrados.filter(usuario => {
+                const percentual = (usuario.cotaUsada / usuario.cotaTotal) * 100;
+                
+                switch (this.filtros.status) {
+                    case 'baixa':
+                        return percentual < 20;
+                    case 'media':
+                        return percentual >= 20 && percentual <= 60;
+                    case 'alta':
+                        return percentual > 60;
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        // Filtro por período (baseado no histórico)
+        if (this.filtros.dataInicio || this.filtros.dataFim) {
+            usuariosFiltrados = usuariosFiltrados.filter(usuario => {
+                if (!usuario.historico || usuario.historico.length === 0) return false;
+                
+                return usuario.historico.some(item => {
+                    const dataItem = new Date(item.data);
+                    const dataInicio = this.filtros.dataInicio ? new Date(this.filtros.dataInicio) : null;
+                    const dataFim = this.filtros.dataFim ? new Date(this.filtros.dataFim) : null;
+                    
+                    if (dataInicio && dataItem < dataInicio) return false;
+                    if (dataFim && dataItem > dataFim) return false;
+                    return true;
+                });
+            });
+        }
+
+        return usuariosFiltrados;
+    }
+
+    sortTable(field) {
+        if (this.sortField === field) {
+            this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.sortField = field;
+            this.sortDirection = 'asc';
+        }
+
+        // Atualizar indicadores visuais
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.classList.remove('sort-asc', 'sort-desc');
+        });
+
+        const currentHeader = document.querySelector(`th[data-sort="${field}"]`);
+        if (currentHeader) {
+            currentHeader.classList.add(`sort-${this.sortDirection}`);
+        }
+
+        this.renderizarTabelaUsuarios();
+    }
+
+    sortUsers(usuarios) {
+        if (!this.sortField) return usuarios;
+
+        return usuarios.sort((a, b) => {
+            let valueA = a[this.sortField];
+            let valueB = b[this.sortField];
+
+            // Tratamento especial para percentual
+            if (this.sortField === 'percentual') {
+                valueA = (a.cotaUsada / a.cotaTotal) * 100;
+                valueB = (b.cotaUsada / b.cotaTotal) * 100;
+            }
+
+            // Tratamento para strings
+            if (typeof valueA === 'string') {
+                valueA = valueA.toLowerCase();
+                valueB = valueB.toLowerCase();
+            }
+
+            let comparison = 0;
+            if (valueA > valueB) {
+                comparison = 1;
+            } else if (valueA < valueB) {
+                comparison = -1;
+            }
+
+            return this.sortDirection === 'desc' ? comparison * -1 : comparison;
+        });
+    }
+
+    irParaPagina(pagina) {
+        const totalPages = this.getTotalPages();
+        
+        if (pagina < 1 || pagina > totalPages) return;
+        
+        this.currentPage = pagina;
+        this.renderizarTabelaUsuarios();
+    }
+
+    getTotalPages() {
+        const usuariosFiltrados = this.filtrarUsuariosDados();
+        return Math.ceil(usuariosFiltrados.length / this.itemsPerPage);
+    }
+
+    getPaginatedUsers(usuarios) {
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+        const endIndex = startIndex + this.itemsPerPage;
+        return usuarios.slice(startIndex, endIndex);
+    }
+
+    updatePaginationInfo() {
+        const usuariosFiltrados = this.filtrarUsuariosDados();
+        const totalUsers = usuariosFiltrados.length;
+        const totalPages = this.getTotalPages();
+        
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage + 1;
+        const endIndex = Math.min(this.currentPage * this.itemsPerPage, totalUsers);
+
+        // Atualizar info de paginação
+        const paginationInfo = document.getElementById('paginationInfo');
+        if (paginationInfo) {
+            paginationInfo.textContent = `Mostrando ${startIndex}-${endIndex} de ${totalUsers} usuários`;
+        }
+
+        const paginaAtual = document.getElementById('paginaAtual');
+        if (paginaAtual) {
+            paginaAtual.textContent = `Página ${this.currentPage} de ${totalPages}`;
+        }
+
+        // Atualizar botões de navegação
+        const btnPrimeira = document.getElementById('btnPrimeiraPagina');
+        const btnAnterior = document.getElementById('btnPaginaAnterior');
+        const btnProxima = document.getElementById('btnProximaPagina');
+        const btnUltima = document.getElementById('btnUltimaPagina');
+
+        if (btnPrimeira) btnPrimeira.disabled = this.currentPage <= 1;
+        if (btnAnterior) btnAnterior.disabled = this.currentPage <= 1;
+        if (btnProxima) btnProxima.disabled = this.currentPage >= totalPages;
+        if (btnUltima) btnUltima.disabled = this.currentPage >= totalPages;
     }
 
     renderizar() {
@@ -95,85 +556,181 @@ class SistemaXerox {
         const cotaUsada = this.dados.usuarios.reduce((sum, user) => sum + user.cotaUsada, 0);
         const cotaRestante = cotaTotal - cotaUsada;
 
-        document.getElementById('totalUsuarios').textContent = totalUsuarios;
-        document.getElementById('cotaTotal').textContent = cotaTotal.toLocaleString();
-        document.getElementById('cotaUtilizada').textContent = cotaUsada.toLocaleString();
-        document.getElementById('cotaRestante').textContent = cotaRestante.toLocaleString();
+        // Animar os valores
+        Utils.animateValue(document.getElementById('totalUsuarios'), 0, totalUsuarios, 800);
+        Utils.animateValue(document.getElementById('cotaTotal'), 0, cotaTotal, 1000);
+        Utils.animateValue(document.getElementById('cotaUtilizada'), 0, cotaUsada, 1200);
+        Utils.animateValue(document.getElementById('cotaRestante'), 0, cotaRestante, 1400);
     }
 
     atualizarFiltroSetores() {
         const setores = [...new Set(this.dados.usuarios.map(user => user.setor))];
         const select = document.getElementById('filtroSetor');
         
-        select.innerHTML = '<option value="">Todos os setores</option>';
-        setores.forEach(setor => {
-            const option = document.createElement('option');
-            option.value = setor;
-            option.textContent = setor;
-            select.appendChild(option);
-        });
+        if (select) {
+            const valorAtual = select.value;
+            select.innerHTML = '<option value="">Todos os setores</option>';
+            
+            setores.forEach(setor => {
+                const option = document.createElement('option');
+                option.value = setor;
+                option.textContent = setor;
+                if (setor === valorAtual) option.selected = true;
+                select.appendChild(option);
+            });
+        }
     }
 
     renderizarTabelaUsuarios() {
         const tbody = document.querySelector('#tabelaUsuarios tbody');
+        if (!tbody) return;
+
+        // Aplicar filtros, ordenação e paginação
+        let usuariosFiltrados = this.filtrarUsuariosDados();
+        usuariosFiltrados = this.sortUsers(usuariosFiltrados);
+        const usuariosPaginados = this.getPaginatedUsers(usuariosFiltrados);
+
+        // Limpar tabela
         tbody.innerHTML = '';
 
-        const usuariosFiltrados = this.filtrarUsuariosDados();
-
-        usuariosFiltrados.forEach(usuario => {
+        // Renderizar usuários
+        usuariosPaginados.forEach(usuario => {
             const row = this.criarLinhaUsuario(usuario);
             tbody.appendChild(row);
         });
+
+        // Atualizar paginação
+        this.updatePaginationInfo();
+
+        // Se não há usuários, mostrar mensagem
+        if (usuariosPaginados.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td colspan="7" class="no-data">
+                    ${usuariosFiltrados.length === 0 ? 
+                        '🔍 Nenhum usuário encontrado com os filtros aplicados' : 
+                        '📄 Nenhum usuário nesta página'
+                    }
+                </td>
+            `;
+            tbody.appendChild(row);
+        }
     }
 
     criarLinhaUsuario(usuario) {
         const row = document.createElement('tr');
         const percentual = (usuario.cotaUsada / usuario.cotaTotal * 100).toFixed(1);
         
-        let classProgressBar = 'progress-low';
-        if (percentual > 80) classProgressBar = 'progress-critical';
-        else if (percentual > 60) classProgressBar = 'progress-high';
-        else if (percentual > 40) classProgressBar = 'progress-medium';
+        const progressClass = Utils.getStatusClass(parseFloat(percentual));
+        const statusBadge = Utils.getStatusBadge(parseFloat(percentual));
 
         row.innerHTML = `
-            <td>${usuario.nome}</td>
-            <td>${usuario.setor}</td>
-            <td>${usuario.cotaTotal.toLocaleString()}</td>
-            <td>${usuario.cotaUsada.toLocaleString()}</td>
-            <td>${usuario.cotaRestante.toLocaleString()}</td>
+            <td>
+                <strong>${Utils.sanitizeInput(usuario.nome)}</strong>
+            </td>
+            <td>
+                <span class="status-badge ${statusBadge}">
+                    ${Utils.sanitizeInput(usuario.setor)}
+                </span>
+            </td>
+            <td>${Utils.formatNumber(usuario.cotaTotal)}</td>
+            <td>${Utils.formatNumber(usuario.cotaUsada)}</td>
+            <td>${Utils.formatNumber(usuario.cotaRestante)}</td>
             <td>
                 <div>${percentual}%</div>
-                <div class="progress-bar">
-                    <div class="progress-fill ${classProgressBar}" style="width: ${percentual}%"></div>
+                <div class="progress-container">
+                    <div class="progress-bar-enhanced ${progressClass}" 
+                         style="width: ${Math.min(percentual, 100)}%"
+                         title="${percentual}% utilizado">
+                        ${percentual}%
+                    </div>
                 </div>
             </td>
             <td>
-                <button class="btn btn-info" onclick="sistema.abrirHistorico(${usuario.id})">📊 Histórico</button>
-                <button class="btn btn-warning" onclick="sistema.editarCotaUsada(${usuario.id})">📝 Editar Cota</button>
-                <button class="btn btn-secondary" onclick="sistema.editarUsuario(${usuario.id})">✏️ Editar</button>
-                <button class="btn btn-danger" onclick="sistema.excluirUsuario(${usuario.id})">🗑️ Excluir</button>
+                <div class="table-actions">
+                    <button class="action-btn view" onclick="sistema.abrirHistorico(${usuario.id})" 
+                            title="Ver histórico" aria-label="Ver histórico de ${usuario.nome}">
+                        📊 Histórico
+                    </button>
+                    <button class="action-btn quota" onclick="sistema.editarCotaUsada(${usuario.id})" 
+                            title="Editar cota" aria-label="Editar cota de ${usuario.nome}">
+                        📝 Cota
+                    </button>
+                    <button class="action-btn edit" onclick="sistema.editarUsuario(${usuario.id})" 
+                            title="Editar usuário" aria-label="Editar dados de ${usuario.nome}">
+                        ✏️ Editar
+                    </button>
+                    <button class="action-btn delete" onclick="sistema.excluirUsuario(${usuario.id})" 
+                            title="Excluir usuário" aria-label="Excluir ${usuario.nome}">
+                        🗑️ Excluir
+                    </button>
+                </div>
             </td>
         `;
+
+        // Adicionar atributos de acessibilidade
+        row.setAttribute('role', 'row');
+        row.querySelectorAll('td').forEach(td => td.setAttribute('role', 'cell'));
 
         return row;
     }
 
-    filtrarUsuariosDados() {
-        const filtroNome = document.getElementById('filtroNome').value.toLowerCase();
-        const filtroSetor = document.getElementById('filtroSetor').value;
-
-        return this.dados.usuarios.filter(usuario => {
-            const matchNome = usuario.nome.toLowerCase().includes(filtroNome);
-            const matchSetor = !filtroSetor || usuario.setor === filtroSetor;
-            return matchNome && matchSetor;
-        });
+    // Métodos existentes adaptados...
+    
+    abrirModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+            
+            // Focar no primeiro elemento focável
+            const focusable = modal.querySelector('input, button, select, textarea, [tabindex]');
+            if (focusable) {
+                setTimeout(() => focusable.focus(), 100);
+            }
+        }
     }
 
-    filtrarUsuarios() {
-        this.renderizarTabelaUsuarios();
+    fecharModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+        }
     }
 
-    // Modais
+    hasPermission(permission) {
+        // Por enquanto, sempre retorna true para admin
+        return true;
+    }
+
+    // Métodos de CRUD e outras funcionalidades existentes...
+    // (mantidos do código original mas adaptados para usar as novas funcionalidades)
+
+    salvarDadosLocal() {
+        try {
+            localStorage.setItem('sistemaXeroxDados', JSON.stringify(this.dados));
+        } catch (error) {
+            console.error('Erro ao salvar dados locais:', error);
+            ToastSystem.error('Erro ao salvar dados localmente');
+        }
+    }
+
+    carregarDadosLocal() {
+        try {
+            const dados = localStorage.getItem('sistemaXeroxDados');
+            if (dados) {
+                this.dados = JSON.parse(dados);
+                return true;
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dados locais:', error);
+        }
+        return false;
+    }
+
+    // Métodos CRUD e funcionalidades principais
+    
     abrirModalConfiguracoes() {
         document.getElementById('tokenGithub').value = this.dados.configuracoes.tokenGithub || '';
         document.getElementById('repositorio').value = this.dados.configuracoes.repositorio || '';
@@ -215,15 +772,18 @@ class SistemaXerox {
 
         historico.forEach((item, index) => {
             const row = document.createElement('tr');
-            const data = new Date(item.data).toLocaleDateString('pt-BR');
+            const data = Utils.formatDate(item.data);
             
             row.innerHTML = `
                 <td>${data}</td>
-                <td>${item.quantidade.toLocaleString()}</td>
-                <td>${item.tipo}</td>
-                <td>${item.descricao}</td>
+                <td>${Utils.formatNumber(item.quantidade)}</td>
+                <td>${Utils.sanitizeInput(item.tipo)}</td>
+                <td>${Utils.sanitizeInput(item.descricao)}</td>
                 <td>
-                    <button class="btn btn-danger" onclick="sistema.excluirGasto(${index})">🗑️ Excluir</button>
+                    <button class="action-btn delete" onclick="sistema.excluirGasto(${index})" 
+                            title="Excluir gasto">
+                        🗑️ Excluir
+                    </button>
                 </td>
             `;
             
@@ -237,74 +797,6 @@ class SistemaXerox {
         this.abrirModal('modalNovoGasto');
     }
 
-    abrirModal(modalId) {
-        document.getElementById(modalId).style.display = 'block';
-    }
-
-    fecharModal(modalId) {
-        document.getElementById(modalId).style.display = 'none';
-    }
-
-    // Ações CRUD
-    salvarConfiguracoes(e) {
-        e.preventDefault();
-        
-        this.dados.configuracoes.tokenGithub = document.getElementById('tokenGithub').value;
-        this.dados.configuracoes.repositorio = document.getElementById('repositorio').value;
-        this.dados.configuracoes.ultimaAtualizacao = new Date().toISOString();
-        
-        this.salvarDadosLocal();
-        this.fecharModal('modalConfiguracoes');
-        this.mostrarMensagem('Configurações salvas com sucesso!', 'success');
-    }
-
-    salvarUsuario(e) {
-        e.preventDefault();
-        
-        const nome = document.getElementById('nomeUsuario').value;
-        const setor = document.getElementById('setorUsuario').value;
-        const cotaTotal = parseInt(document.getElementById('cotaTotalUsuario').value);
-
-        if (this.usuarioEditando) {
-            this.usuarioEditando.nome = nome;
-            this.usuarioEditando.setor = setor;
-            this.usuarioEditando.cotaTotal = cotaTotal;
-            this.usuarioEditando.cotaRestante = cotaTotal - this.usuarioEditando.cotaUsada;
-        } else {
-            const novoUsuario = {
-                id: Date.now(),
-                nome,
-                setor,
-                cotaTotal,
-                cotaUsada: 0,
-                cotaRestante: cotaTotal,
-                historico: []
-            };
-            this.dados.usuarios.push(novoUsuario);
-        }
-
-        this.salvarDadosLocal();
-        this.renderizar();
-        this.fecharModal('modalUsuario');
-        this.mostrarMensagem('Usuário salvo com sucesso!', 'success');
-    }
-
-    editarUsuario(idUsuario) {
-        const usuario = this.dados.usuarios.find(u => u.id === idUsuario);
-        if (usuario) {
-            this.abrirModalUsuario(usuario);
-        }
-    }
-
-    excluirUsuario(idUsuario) {
-        if (confirm('Tem certeza que deseja excluir este usuário?')) {
-            this.dados.usuarios = this.dados.usuarios.filter(u => u.id !== idUsuario);
-            this.salvarDadosLocal();
-            this.renderizar();
-            this.mostrarMensagem('Usuário excluído com sucesso!', 'success');
-        }
-    }
-
     editarCotaUsada(idUsuario) {
         const usuario = this.dados.usuarios.find(u => u.id === idUsuario);
         if (!usuario) return;
@@ -314,8 +806,8 @@ class SistemaXerox {
         document.getElementById('tituloModalEditarCota').textContent = `📝 Editar Cota de ${usuario.nome}`;
         document.getElementById('cotaAtualUsada').value = usuario.cotaUsada;
         document.getElementById('novaCotaUsada').value = usuario.cotaUsada;
-        document.getElementById('cotaTotalInfo').textContent = usuario.cotaTotal.toLocaleString();
-        document.getElementById('novaCotaRestanteInfo').textContent = usuario.cotaRestante.toLocaleString();
+        document.getElementById('cotaTotalInfo').textContent = Utils.formatNumber(usuario.cotaTotal);
+        document.getElementById('novaCotaRestanteInfo').textContent = Utils.formatNumber(usuario.cotaRestante);
         document.getElementById('motivoAlteracao').value = '';
         
         this.abrirModal('modalEditarCota');
@@ -328,15 +820,120 @@ class SistemaXerox {
         const cotaTotal = this.usuarioEditandoCota.cotaTotal;
         const novaCotaRestante = cotaTotal - novaCotaUsada;
         
-        document.getElementById('novaCotaRestanteInfo').textContent = novaCotaRestante.toLocaleString();
+        const span = document.getElementById('novaCotaRestanteInfo');
+        span.textContent = Utils.formatNumber(novaCotaRestante);
         
         // Mudar cor se for negativo
-        const span = document.getElementById('novaCotaRestanteInfo');
-        if (novaCotaRestante < 0) {
-            span.style.color = '#dc3545';
-        } else {
-            span.style.color = '#007bff';
+        span.style.color = novaCotaRestante < 0 ? '#dc3545' : '#007bff';
+    }
+
+    editarUsuario(idUsuario) {
+        const usuario = this.dados.usuarios.find(u => u.id === idUsuario);
+        if (usuario) {
+            this.abrirModalUsuario(usuario);
         }
+    }
+
+    excluirUsuario(idUsuario) {
+        const usuario = this.dados.usuarios.find(u => u.id === idUsuario);
+        if (!usuario) return;
+
+        ToastSystem.confirm(
+            `Tem certeza que deseja excluir o usuário "${usuario.nome}"?`,
+            () => {
+                this.dados.usuarios = this.dados.usuarios.filter(u => u.id !== idUsuario);
+                this.salvarDadosLocal();
+                this.renderizar();
+                ToastSystem.success('Usuário excluído com sucesso!');
+            }
+        );
+    }
+
+    excluirGasto(index) {
+        if (!this.usuarioHistorico) return;
+
+        ToastSystem.confirm(
+            'Tem certeza que deseja excluir este gasto?',
+            () => {
+                const gasto = this.usuarioHistorico.historico[index];
+                this.usuarioHistorico.cotaUsada -= gasto.quantidade;
+                this.usuarioHistorico.cotaRestante = this.usuarioHistorico.cotaTotal - this.usuarioHistorico.cotaUsada;
+                
+                this.usuarioHistorico.historico.splice(index, 1);
+
+                this.salvarDadosLocal();
+                this.renderizar();
+                this.renderizarTabelaHistorico(this.usuarioHistorico.historico);
+                ToastSystem.success('Gasto removido com sucesso!');
+            }
+        );
+    }
+
+    salvarConfiguracoes(e) {
+        e.preventDefault();
+        
+        this.dados.configuracoes.tokenGithub = document.getElementById('tokenGithub').value;
+        this.dados.configuracoes.repositorio = document.getElementById('repositorio').value;
+        this.dados.configuracoes.ultimaAtualizacao = new Date().toISOString();
+        
+        this.salvarDadosLocal();
+        this.fecharModal('modalConfiguracoes');
+        ToastSystem.success('Configurações salvas com sucesso!');
+    }
+
+    salvarUsuario(data) {
+        const nome = Utils.sanitizeInput(data.nomeUsuario);
+        const setor = Utils.sanitizeInput(data.setorUsuario);
+        const cotaTotal = parseInt(data.cotaTotalUsuario);
+
+        if (this.usuarioEditando) {
+            this.usuarioEditando.nome = nome;
+            this.usuarioEditando.setor = setor;
+            this.usuarioEditando.cotaTotal = cotaTotal;
+            this.usuarioEditando.cotaRestante = cotaTotal - this.usuarioEditando.cotaUsada;
+            ToastSystem.success('Usuário atualizado com sucesso!');
+        } else {
+            const novoUsuario = {
+                id: Utils.generateId(),
+                nome,
+                setor,
+                cotaTotal,
+                cotaUsada: 0,
+                cotaRestante: cotaTotal,
+                historico: []
+            };
+            this.dados.usuarios.push(novoUsuario);
+            ToastSystem.success('Novo usuário criado com sucesso!');
+        }
+
+        this.salvarDadosLocal();
+        this.renderizar();
+        this.fecharModal('modalUsuario');
+    }
+
+    salvarNovoGasto(data) {
+        if (!this.usuarioHistorico) return;
+
+        const novoGasto = {
+            data: data.dataGasto,
+            quantidade: parseInt(data.quantidadeGasto),
+            tipo: data.tipoGasto,
+            descricao: Utils.sanitizeInput(data.descricaoGasto)
+        };
+
+        if (!this.usuarioHistorico.historico) {
+            this.usuarioHistorico.historico = [];
+        }
+
+        this.usuarioHistorico.historico.push(novoGasto);
+        this.usuarioHistorico.cotaUsada += novoGasto.quantidade;
+        this.usuarioHistorico.cotaRestante = this.usuarioHistorico.cotaTotal - this.usuarioHistorico.cotaUsada;
+
+        this.salvarDadosLocal();
+        this.renderizar();
+        this.renderizarTabelaHistorico(this.usuarioHistorico.historico);
+        this.fecharModal('modalNovoGasto');
+        ToastSystem.success('Gasto adicionado com sucesso!');
     }
 
     salvarEditarCota(e) {
@@ -345,7 +942,7 @@ class SistemaXerox {
         if (!this.usuarioEditandoCota) return;
 
         const novaCotaUsada = parseInt(document.getElementById('novaCotaUsada').value);
-        const motivoAlteracao = document.getElementById('motivoAlteracao').value;
+        const motivoAlteracao = Utils.sanitizeInput(document.getElementById('motivoAlteracao').value);
         const cotaAnterior = this.usuarioEditandoCota.cotaUsada;
 
         // Atualizar dados do usuário
@@ -361,84 +958,47 @@ class SistemaXerox {
             data: new Date().toISOString().split('T')[0],
             quantidade: novaCotaUsada - cotaAnterior,
             tipo: 'ajuste',
-            descricao: `Ajuste manual: ${motivoAlteracao} (de ${cotaAnterior} para ${novaCotaUsada})`
+            descricao: `Ajuste manual: ${motivoAlteracao} (de ${Utils.formatNumber(cotaAnterior)} para ${Utils.formatNumber(novaCotaUsada)})`
         });
 
         this.salvarDadosLocal();
         this.renderizar();
         this.fecharModal('modalEditarCota');
-        this.mostrarMensagem(`Cota de ${this.usuarioEditandoCota.nome} atualizada com sucesso!`, 'success');
+        ToastSystem.success(`Cota de ${this.usuarioEditandoCota.nome} atualizada com sucesso!`);
         this.usuarioEditandoCota = null;
     }
 
-    salvarNovoGasto(e) {
-        e.preventDefault();
-        
-        if (!this.usuarioHistorico) return;
-
-        const data = document.getElementById('dataGasto').value;
-        const quantidade = parseInt(document.getElementById('quantidadeGasto').value);
-        const tipo = document.getElementById('tipoGasto').value;
-        const descricao = document.getElementById('descricaoGasto').value;
-
-        const novoGasto = {
-            data,
-            quantidade,
-            tipo,
-            descricao
-        };
-
-        if (!this.usuarioHistorico.historico) {
-            this.usuarioHistorico.historico = [];
+    alterarSenha(data) {
+        // Validar senhas
+        if (data.novaSenha !== data.confirmarSenha) {
+            ToastSystem.error('As senhas não coincidem');
+            return;
         }
 
-        this.usuarioHistorico.historico.push(novoGasto);
-        this.usuarioHistorico.cotaUsada += quantidade;
-        this.usuarioHistorico.cotaRestante = this.usuarioHistorico.cotaTotal - this.usuarioHistorico.cotaUsada;
-
-        this.salvarDadosLocal();
-        this.renderizar();
-        this.renderizarTabelaHistorico(this.usuarioHistorico.historico);
-        this.fecharModal('modalNovoGasto');
-        this.mostrarMensagem('Gasto adicionado com sucesso!', 'success');
-    }
-
-    excluirGasto(index) {
-        if (!this.usuarioHistorico || !confirm('Tem certeza que deseja excluir este gasto?')) return;
-
-        const gasto = this.usuarioHistorico.historico[index];
-        this.usuarioHistorico.cotaUsada -= gasto.quantidade;
-        this.usuarioHistorico.cotaRestante = this.usuarioHistorico.cotaTotal - this.usuarioHistorico.cotaUsada;
+        const loadingToast = ToastSystem.loading('Alterando senha...');
         
-        this.usuarioHistorico.historico.splice(index, 1);
-
-        this.salvarDadosLocal();
-        this.renderizar();
-        this.renderizarTabelaHistorico(this.usuarioHistorico.historico);
-        this.mostrarMensagem('Gasto removido com sucesso!', 'success');
+        this.auth.changePassword(data.senhaAtual, data.novaSenha)
+            .then(result => {
+                ToastSystem.close(loadingToast);
+                if (result.success) {
+                    ToastSystem.success(result.message);
+                    this.fecharModal('modalAlterarSenha');
+                } else {
+                    ToastSystem.error(result.message);
+                }
+            })
+            .catch(error => {
+                ToastSystem.close(loadingToast);
+                ToastSystem.error('Erro ao alterar senha');
+                console.error('Erro:', error);
+            });
     }
 
-    // Armazenamento Local
-    salvarDadosLocal() {
-        localStorage.setItem('sistemaXeroxDados', JSON.stringify(this.dados));
-    }
-
-    carregarDadosLocal() {
-        const dados = localStorage.getItem('sistemaXeroxDados');
-        if (dados) {
-            this.dados = JSON.parse(dados);
-            return true;
-        }
-        return false;
-    }
-
-    // Sincronização com GitHub
     async sincronizarDados() {
         const btnSincronizar = document.getElementById('btnSincronizar');
         const textoOriginal = btnSincronizar.innerHTML;
         
-        btnSincronizar.innerHTML = '<div class="loading"></div> Sincronizando...';
-        btnSincronizar.disabled = true;
+        Utils.showLoadingState(btnSincronizar, true);
 
         try {
             if (!this.dados.configuracoes.tokenGithub || !this.dados.configuracoes.repositorio) {
@@ -451,13 +1011,12 @@ class SistemaXerox {
             // Depois enviar dados locais
             await this.enviarDadosGithub();
             
-            this.mostrarMensagem('Dados sincronizados com sucesso!', 'success');
+            ToastSystem.success('Dados sincronizados com sucesso!');
         } catch (error) {
             console.error('Erro na sincronização:', error);
-            this.mostrarMensagem(`Erro na sincronização: ${error.message}`, 'error');
+            ToastSystem.error(`Erro na sincronização: ${error.message}`);
         } finally {
-            btnSincronizar.innerHTML = textoOriginal;
-            btnSincronizar.disabled = false;
+            Utils.showLoadingState(btnSincronizar, false);
         }
     }
 
@@ -484,6 +1043,7 @@ class SistemaXerox {
                     this.dados = dadosGithub;
                     this.salvarDadosLocal();
                     this.renderizar();
+                    ToastSystem.info('Dados atualizados do GitHub');
                 }
             }
         } catch (error) {
@@ -516,7 +1076,7 @@ class SistemaXerox {
 
         // Enviar dados
         const body = {
-            message: `Atualização automática - ${new Date().toLocaleString('pt-BR')}`,
+            message: `Atualização automática - ${Utils.formatDateTime(new Date())}`,
             content: btoa(JSON.stringify(this.dados, null, 2))
         };
 
@@ -541,28 +1101,15 @@ class SistemaXerox {
 
         this.salvarDadosLocal();
     }
-
-    // Utilitários
-    mostrarMensagem(texto, tipo = 'success') {
-        const mensagem = document.createElement('div');
-        mensagem.className = `${tipo}-message`;
-        mensagem.textContent = texto;
-        
-        document.body.insertBefore(mensagem, document.body.firstChild);
-        
-        setTimeout(() => {
-            mensagem.remove();
-        }, 5000);
-    }
 }
 
-// Inicializar sistema
+// Inicializar sistema quando o DOM estiver pronto
 let sistema;
 document.addEventListener('DOMContentLoaded', () => {
     sistema = new SistemaXerox();
 });
 
-// Carregar dados locais se existirem
+// Carregar dados locais quando a janela carregar
 window.addEventListener('load', () => {
     if (sistema && sistema.carregarDadosLocal()) {
         sistema.renderizar();

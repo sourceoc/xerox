@@ -4,19 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gerenciamento de Cotas Xerox</title>
+    <meta name="description" content="Sistema profissional de gerenciamento de cotas de impressão para professores">
+    <meta name="keywords" content="xerox, impressão, cotas, gerenciamento, professores">
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖨️</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Xerox Manager">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' fill='%23667eea'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='90' fill='white'>🖨️</text></svg>">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Pular para conteúdo principal</a>
     <div class="container">
         <header>
             <h1>🖨️ Gerenciamento de Cotas Xerox</h1>
             <div class="header-actions">
+                <div class="user-info" id="userInfo">
+                    <span id="userName">👤 Visitante</span>
+                </div>
+                <button id="themeToggle" class="theme-toggle" aria-label="Alternar tema" title="Alternar entre modo claro e escuro"></button>
                 <button id="btnConfiguracoes" class="btn btn-secondary">⚙️ Configurações</button>
                 <button id="btnSincronizar" class="btn btn-primary">🔄 Sincronizar</button>
+                <button id="btnLogout" class="btn btn-secondary" style="display: none;">🚪 Sair</button>
             </div>
         </header>
 
-        <main>
+        <main id="main-content">
             <!-- Dashboard -->
             <section class="dashboard">
                 <div class="card">
@@ -39,30 +54,75 @@
 
             <!-- Filtros -->
             <section class="filtros">
-                <input type="text" id="filtroNome" placeholder="Buscar por nome...">
-                <select id="filtroSetor">
+                <input type="text" id="filtroNome" placeholder="Buscar por nome..." aria-label="Filtrar usuários por nome">
+                <select id="filtroSetor" aria-label="Filtrar usuários por setor">
                     <option value="">Todos os setores</option>
                 </select>
+                <input type="date" id="filtroDataInicio" aria-label="Data inicial para filtro">
+                <input type="date" id="filtroDataFim" aria-label="Data final para filtro">
+                <select id="filtroStatus" aria-label="Filtrar por status da cota">
+                    <option value="">Todos os status</option>
+                    <option value="baixa">Cota Baixa (&lt;20%)</option>
+                    <option value="media">Cota Média (20-60%)</option>
+                    <option value="alta">Cota Alta (&gt;60%)</option>
+                </select>
+                <button id="btnLimparFiltros" class="btn btn-secondary" title="Limpar todos os filtros">🗑️</button>
+                <button id="btnExportar" class="btn btn-info" title="Exportar relatório">📊 Exportar</button>
                 <button id="btnNovoUsuario" class="btn btn-success">➕ Novo Usuário</button>
             </section>
 
             <!-- Tabela de Usuários -->
             <section class="tabela-usuarios">
-                <table id="tabelaUsuarios">
+                <div class="table-header">
+                    <h3>Lista de Usuários</h3>
+                    <div class="table-controls">
+                        <select id="itensPorPagina" aria-label="Itens por página">
+                            <option value="10">10 por página</option>
+                            <option value="25" selected>25 por página</option>
+                            <option value="50">50 por página</option>
+                            <option value="100">Todos</option>
+                        </select>
+                    </div>
+                </div>
+                <table id="tabelaUsuarios" role="table" aria-label="Lista de usuários e suas cotas">
                     <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Setor</th>
-                            <th>Cota Total</th>
-                            <th>Cota Usada</th>
-                            <th>Cota Restante</th>
-                            <th>% Utilizada</th>
-                            <th>Ações</th>
+                        <tr role="row">
+                            <th role="columnheader" tabindex="0" data-sort="nome">
+                                Nome <span class="sort-indicator" aria-hidden="true">↕️</span>
+                            </th>
+                            <th role="columnheader" tabindex="0" data-sort="setor">
+                                Setor <span class="sort-indicator" aria-hidden="true">↕️</span>
+                            </th>
+                            <th role="columnheader" tabindex="0" data-sort="cotaTotal">
+                                Cota Total <span class="sort-indicator" aria-hidden="true">↕️</span>
+                            </th>
+                            <th role="columnheader" tabindex="0" data-sort="cotaUsada">
+                                Cota Usada <span class="sort-indicator" aria-hidden="true">↕️</span>
+                            </th>
+                            <th role="columnheader" tabindex="0" data-sort="cotaRestante">
+                                Cota Restante <span class="sort-indicator" aria-hidden="true">↕️</span>
+                            </th>
+                            <th role="columnheader" tabindex="0" data-sort="percentual">
+                                % Utilizada <span class="sort-indicator" aria-hidden="true">↕️</span>
+                            </th>
+                            <th role="columnheader">Ações</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody role="rowgroup">
                     </tbody>
                 </table>
+                <div class="pagination" role="navigation" aria-label="Paginação da tabela">
+                    <div class="pagination-info">
+                        <span id="paginationInfo">Mostrando 0-0 de 0 usuários</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="btnPrimeiraPagina" class="btn-page" aria-label="Primeira página" disabled>⏮️</button>
+                        <button id="btnPaginaAnterior" class="btn-page" aria-label="Página anterior" disabled>◀️</button>
+                        <span id="paginaAtual" class="page-info">Página 1 de 1</span>
+                        <button id="btnProximaPagina" class="btn-page" aria-label="Próxima página" disabled>▶️</button>
+                        <button id="btnUltimaPagina" class="btn-page" aria-label="Última página" disabled>⏭️</button>
+                    </div>
+                </div>
             </section>
         </main>
     </div>
@@ -194,6 +254,172 @@
         </div>
     </div>
 
+    <!-- Modal Login -->
+    <div id="modalLogin" class="modal modal-login" role="dialog" aria-labelledby="loginTitle" aria-hidden="true">
+        <div class="modal-content">
+            <div class="login-header">
+                <h2 id="loginTitle">🔐 Acesso Restrito</h2>
+                <p>Faça login para acessar o sistema</p>
+            </div>
+            <form id="formLogin" novalidate>
+                <div class="form-group-login">
+                    <input type="text" id="loginUsuario" placeholder=" " required autocomplete="username">
+                    <label for="loginUsuario">Usuário</label>
+                </div>
+                <div class="form-group-login">
+                    <input type="password" id="loginSenha" placeholder=" " required autocomplete="current-password">
+                    <label for="loginSenha">Senha</label>
+                </div>
+                <div class="login-actions">
+                    <button type="submit" class="btn-login-primary">🚀 Entrar</button>
+                </div>
+            </form>
+            <div class="login-footer">
+                <p><strong>Credenciais padrão:</strong> usuário: admin | senha: admin123</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Alterar Senha -->
+    <div id="modalAlterarSenha" class="modal" role="dialog" aria-labelledby="alterarSenhaTitle" aria-hidden="true">
+        <div class="modal-content">
+            <span class="close" aria-label="Fechar modal">&times;</span>
+            <h2 id="alterarSenhaTitle">🔑 Alterar Senha</h2>
+            <form id="formAlterarSenha" novalidate>
+                <div class="form-group">
+                    <label for="senhaAtual">Senha Atual:</label>
+                    <input type="password" id="senhaAtual" required autocomplete="current-password">
+                </div>
+                <div class="form-group">
+                    <label for="novaSenha">Nova Senha:</label>
+                    <input type="password" id="novaSenha" required autocomplete="new-password" minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirmarSenha">Confirmar Nova Senha:</label>
+                    <input type="password" id="confirmarSenha" required autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn btn-primary">💾 Alterar Senha</button>
+                <button type="button" id="btnCancelarSenha" class="btn btn-secondary">❌ Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Exportar -->
+    <div id="modalExportar" class="modal" role="dialog" aria-labelledby="exportarTitle" aria-hidden="true">
+        <div class="modal-content">
+            <span class="close" aria-label="Fechar modal">&times;</span>
+            <h2 id="exportarTitle">📊 Exportar Relatório</h2>
+            <form id="formExportar">
+                <div class="form-group">
+                    <label for="tipoRelatorio">Tipo de Relatório:</label>
+                    <select id="tipoRelatorio" required>
+                        <option value="completo">Relatório Completo</option>
+                        <option value="resumo">Resumo Executivo</option>
+                        <option value="cotas-baixas">Apenas Cotas Baixas</option>
+                        <option value="historico">Histórico de Consumo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="formatoExportar">Formato:</label>
+                    <select id="formatoExportar" required>
+                        <option value="pdf">PDF</option>
+                        <option value="excel">Excel (.xlsx)</option>
+                        <option value="csv">CSV</option>
+                        <option value="json">JSON</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="periodoInicio">Período Inicial:</label>
+                    <input type="date" id="periodoInicio">
+                </div>
+                <div class="form-group">
+                    <label for="periodoFim">Período Final:</label>
+                    <input type="date" id="periodoFim">
+                </div>
+                <button type="submit" class="btn btn-primary">📥 Exportar</button>
+                <button type="button" id="btnCancelarExportar" class="btn btn-secondary">❌ Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/crypto-utils.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/validation.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/export.js"></script>
     <script src="script.js"></script>
+    
+    <script>
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    console.log('Service Worker registrado:', registration);
+                    
+                    // Verificar por atualizações
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                ToastSystem.show(
+                                    'Nova versão disponível! Recarregue a página para atualizar.',
+                                    'info',
+                                    0,
+                                    [
+                                        {
+                                            text: 'Atualizar',
+                                            callback: 'window.location.reload()'
+                                        }
+                                    ]
+                                );
+                            }
+                        });
+                    });
+                } catch (error) {
+                    console.error('Erro ao registrar Service Worker:', error);
+                }
+            });
+        }
+        
+        // Detectar instalação do PWA
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Mostrar toast para instalação
+            ToastSystem.show(
+                'Instale o app para acesso rápido!',
+                'info',
+                8000,
+                [
+                    {
+                        text: 'Instalar',
+                        callback: 'installPWA()'
+                    }
+                ]
+            );
+        });
+        
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((result) => {
+                    if (result.outcome === 'accepted') {
+                        ToastSystem.success('App instalado com sucesso!');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+        
+        // Detectar quando o app é instalado
+        window.addEventListener('appinstalled', () => {
+            ToastSystem.success('App instalado! Agora você pode acessá-lo pela tela inicial.');
+            deferredPrompt = null;
+        });
+    </script>
 </body>
 </html>
